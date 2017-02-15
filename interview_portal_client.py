@@ -128,7 +128,8 @@ def startinterview():
     print("End of Interview")
 
 def validate(loggedInAs):
-	# KH -- EXCISED PER LICENSING RESTRICTION
+    # KH -- EXCISED PER LICENSING RESTRICTION
+    pass
 
 def createInterview():
     greeting = client_socket.recv(1024)

@@ -422,7 +422,8 @@ class ServerThread(threading.Thread):
 
 
     def validate(self):
-	# KH -- EXCISED PER LICENSING RESTRICTION
+        # KH -- EXCISED PER LICENSING RESTRICTION
+        pass
 
     def terminate_session(self):
         global enc
