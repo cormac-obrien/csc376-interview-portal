@@ -1,4 +1,4 @@
-# Copyright 2016. DePaul University. All rights reserved. 
+# Copyright 2016. DePaul University. All rights reserved.
 # This work is distributed pursuant to the Software License
 # for Community Contribution of Academic Work, dated Oct. 1, 2016.
 # For terms and conditions, please see the license file, which is
@@ -7,10 +7,7 @@
 import sys
 import threading
 import time
-import sqlite3
 import db_interaction
-import user
-import interview
 from answer import *
 from question import *
 from active_interview import *
@@ -31,7 +28,8 @@ class ServerThread(threading.Thread):
         self.client_socket = client_socket
         self._USER_NAME = ''
         self._USER_PW = ''
-        self.currentuser=None
+        self.currentuser = None
+
     ##################################################
     ##Helper function for giveInterview. Handles all##
     ##looping needed to assure a correct response   ##
@@ -99,8 +97,7 @@ class ServerThread(threading.Thread):
                 response = response.rstrip()
 
         return
-    
-    
+
     def listUsers(self):
         interview_list = 'List of Interviewees'
         interview_list = enc.encrypt(interview_list)
@@ -117,9 +114,9 @@ class ServerThread(threading.Thread):
         end_list = enc.encrypt(end_list)
         self.client_socket.send(end_list)
         time.sleep(0.05)
-    
+
     def reviewInterview(self):
-        greetingString="Interview Review Mode"
+        greetingString = "Interview Review Mode"
         greetingString = enc.encrypt(greetingString)
         self.client_socket.send(greetingString)
         time.sleep(0.05)
@@ -158,16 +155,15 @@ class ServerThread(threading.Thread):
         self.client_socket.send(end_list)
         time.sleep(0.05)
 
-
-    def sendQuestion(self,messagestring,sendAnswers):
+    def sendQuestion(self, messagestring, sendAnswers):
         global enc
-        correct=False
-        error=False
-        while correct==False:
+        correct = False
+        error = False
+        while correct == False:
             messagestring = enc.encrypt(messagestring)
             self.client_socket.send(messagestring)
             messagestring = enc.decrypt(messagestring)
-            response=self.client_socket.recv(1024)
+            response = self.client_socket.recv(1024)
             response = enc.decrypt(response)
             response = response.rstrip()
             response = response.upper()
@@ -176,14 +172,11 @@ class ServerThread(threading.Thread):
                 if response == tup[2]:
                     correct = True
                     return response
-                elif error==False:
-                    error=True
-                    messagestring="\nINVALID RESPONSE\nPlease enter a letter exactly as it appears above\n"+messagestring
-
+                elif error == False:
+                    error = True
+                    messagestring = "\nINVALID RESPONSE\nPlease enter a letter exactly as it appears above\n" + messagestring
 
         return response
-    
-    
 
         #############################################################
         ##Gives the interview by getting the question data, storing##
@@ -195,51 +188,58 @@ class ServerThread(threading.Thread):
         #############################################################
     def giveInterview(self):
         global enc
-        answerlist=[]
-        i=1
-        currentinterview=db_interaction.getInterview(self.currentuser.getIntID())
-        logger.info('User {} started interview {}'.format(self.currentuser.getName(), self.currentuser.getIntID()))
-        greetingString="Welcome to your interview!\n"+currentinterview.getInterviewName()
+        answerlist = []
+        i = 1
+        currentinterview = db_interaction.getInterview(
+            self.currentuser.getIntID())
+        logger.info('User {} started interview {}'.format(
+            self.currentuser.getName(), self.currentuser.getIntID()))
+        greetingString = "Welcome to your interview!\n" + currentinterview.getInterviewName(
+        )
         greetingString = enc.encrypt(greetingString)
         self.client_socket.send(greetingString)
-        currentQuestion=currentinterview.getNextQuestion()
+        currentQuestion = currentinterview.getNextQuestion()
         while currentQuestion != "End of Interview":
-            answers=currentQuestion.getAnswers()
-            sendAnswers=[]
-            firstletter='A'
+            answers = currentQuestion.getAnswers()
+            sendAnswers = []
+            firstletter = 'A'
             for a in answers:
-                sendAnswers.append((a.getAnswerText(),a.getAnswerID(),firstletter))
-                firstletter=chr(ord(firstletter)+1)
-            messagestring="\n"+currentQuestion.getQuestionText()+"\n"
+                sendAnswers.append(
+                    (a.getAnswerText(), a.getAnswerID(), firstletter))
+                firstletter = chr(ord(firstletter) + 1)
+            messagestring = "\n" + currentQuestion.getQuestionText() + "\n"
             for tup in sendAnswers:
-                messagestring=messagestring+str(tup[2])+": "+str(tup[0])+"\n"
-            response=self.sendQuestion(messagestring,sendAnswers)
-            responseID=""
+                messagestring = messagestring + str(tup[2]) + ": " + str(
+                    tup[0]) + "\n"
+            response = self.sendQuestion(messagestring, sendAnswers)
+            responseID = ""
             for tup in sendAnswers:
-                if tup[2]==response:
-                    responseID=tup[1]
+                if tup[2] == response:
+                    responseID = tup[1]
             currentinterview.answerQuestion(responseID)
-            currentQuestion=currentinterview.getNextQuestion()
+            currentQuestion = currentinterview.getNextQuestion()
         db_interaction.submitAnswers(currentinterview)
         self.client_socket.send(enc.encrypt("End of Interview"))
-        logger.info('User {} completed interview {}'.format(self.currentuser.getName(), self.currentuser.getIntID()))
+        logger.info('User {} completed interview {}'.format(
+            self.currentuser.getName(), self.currentuser.getIntID()))
         return
 
     def createInterview(self):
         global enc
-        greetingString="Welcome to the interview creator!"
+        greetingString = "Welcome to the interview creator!"
         greetingString = enc.encrypt(greetingString)
         self.client_socket.send(greetingString)
         time.sleep(0.05)
-        askQuestionString="What is the name of this interview?"
+        askQuestionString = "What is the name of this interview?"
         askQuestionString = enc.encrypt(askQuestionString)
         self.client_socket.send(askQuestionString)
         time.sleep(0.05)
-        
+
         name = self.client_socket.recv(1024)
         name = enc.decrypt(name)
 
-        logger.info('User {} created interview {}'.format(self._USER_NAME, name))
+        logger.info(
+            'User {} created interview {}'.format(self._USER_NAME, name))
         print(name)
         questions = []
 
@@ -248,15 +248,15 @@ class ServerThread(threading.Thread):
 
         while (nextQ):
             answers = []
-            msg="Please type a QUESTION?"
+            msg = "Please type a QUESTION?"
             msg = enc.encrypt(msg)
             self.client_socket.send(msg)
             question = self.client_socket.recv(1024)
             question = enc.decrypt(question)
             question = question.rstrip()
             print(question)
-            while(nextA):
-                msg="Please type an ANSWER?"
+            while (nextA):
+                msg = "Please type an ANSWER?"
                 self.client_socket.send(enc.encrypt(msg))
 
                 answer = self.client_socket.recv(1024)
@@ -269,7 +269,7 @@ class ServerThread(threading.Thread):
 
                 check = True
 
-                while(check):
+                while (check):
                     msg = "Would you like to add another ANSWER (Y/N)?"
                     self.client_socket.send(enc.encrypt(msg))
 
@@ -286,17 +286,17 @@ class ServerThread(threading.Thread):
                         nextA = False
                         print("1")
                     else:
-                        msg="Invalid Response!"
+                        msg = "Invalid Response!"
                         self.client_socket.send(enc.encrypt(msg))
                         check = True
 
-            questionObj = Question(1000,question,answers)
+            questionObj = Question(1000, question, answers)
             questions.append(questionObj)
             nextA = True
             check2 = True
 
-            while(check2):
-                msg= 'Would you like to add another QUESTION (Y/N)?'
+            while (check2):
+                msg = 'Would you like to add another QUESTION (Y/N)?'
                 self.client_socket.send(enc.encrypt(msg))
 
                 checker = self.client_socket.recv(1024)
@@ -310,7 +310,7 @@ class ServerThread(threading.Thread):
                     check2 = False
                     nextQ = False
                 else:
-                    msg="Invalid Response!"
+                    msg = "Invalid Response!"
                     self.client_socket.send(enc.encrypt(msg))
                     check = True
 
@@ -318,9 +318,10 @@ class ServerThread(threading.Thread):
 
         print(questions)
 
-        interviewID = db_interaction.makeNewInterview(interview, self.currentuser.getID())
+        interviewID = db_interaction.makeNewInterview(interview,
+                                                      self.currentuser.getID())
         assigning = True
-        msg= 'Would you like to assign this interview to a user (Y/N)?'
+        msg = 'Would you like to assign this interview to a user (Y/N)?'
         self.client_socket.send(enc.encrypt(msg))
 
         checker = self.client_socket.recv(1024)
@@ -329,7 +330,7 @@ class ServerThread(threading.Thread):
         checker = checker.upper()
         while (assigning):
             if checker == 'Y':
-                msg= 'Enter a user to assign to :'
+                msg = 'Enter a user to assign to :'
                 msg = enc.encrypt(msg)
                 self.client_socket.send(msg)
                 assignTo = self.client_socket.recv(1024)
@@ -342,20 +343,19 @@ class ServerThread(threading.Thread):
                 assigning = False
                 break
             else:
-                msg="Invalid Response!"
+                msg = "Invalid Response!"
                 self.client_socket.send(enc.encrypt(msg))
 
         msg = "End of Interview"
         self.client_socket.send(enc.encrypt(msg))
 
-
     def assignInterview(self):
         global enc
-        greetingString="Welcome to the interview assigner!"
+        greetingString = "Welcome to the interview assigner!"
         greetingString = enc.encrypt(greetingString)
         self.client_socket.send(greetingString)
         time.sleep(0.05)
-        msg= 'Enter a interview number to assign :'
+        msg = 'Enter a interview number to assign :'
         msg = enc.encrypt(msg)
         self.client_socket.send(msg)
         time.sleep(0.05)
@@ -363,20 +363,19 @@ class ServerThread(threading.Thread):
         interviewID = enc.decrypt(interviewID)
         interviewID = interviewID.rstrip()
 
-
         userAssigned = db_interaction.checkIntAssigned(interviewID)
-        if(userAssigned == None):
-            msg= 'Enter a user to assign to :'
+        if (userAssigned == None):
+            msg = 'Enter a user to assign to :'
             msg = enc.encrypt(msg)
             self.client_socket.send(msg)
             assignTo = self.client_socket.recv(1024)
             assignTo = enc.decrypt(assignTo)
             assignTo = assignTo.rstrip()
             print(assignTo)
-            if(db_interaction.getUserInterviewID(assignTo) == None):
+            if (db_interaction.getUserInterviewID(assignTo) == None):
                 db_interaction.assignUser(interviewID, assignTo)
             else:
-                msg= 'This user already has an interview assigned to them. Are you sure you want to assign a different interview (Y/N)?'
+                msg = 'This user already has an interview assigned to them. Are you sure you want to assign a different interview (Y/N)?'
                 self.client_socket.send(enc.encrypt(msg))
 
                 checker = self.client_socket.recv(1024)
@@ -394,10 +393,12 @@ class ServerThread(threading.Thread):
                         assigning = False
                         break
                     else:
-                        msg="Invalid Response!"
+                        msg = "Invalid Response!"
                         self.client_socket.send(enc.encrypt(msg))
         else:
-            msg= ('This interview is already assigned to user {}. Would you like to assign a different interview (Y/N)?'.format(userAssigned))
+            msg = (
+                'This interview is already assigned to user {}. Would you like to assign a different interview (Y/N)?'.
+                format(userAssigned))
             self.client_socket.send(enc.encrypt(msg))
             checker = self.client_socket.recv(1024)
             checker = enc.decrypt(checker)
@@ -413,13 +414,11 @@ class ServerThread(threading.Thread):
                     self.client_socket.send(enc.encrypt(msg))
                     assigning = False
                 else:
-                    msg="Invalid Response!"
+                    msg = "Invalid Response!"
                     self.client_socket.send(enc.encrypt(msg))
 
         msg = "End of assigning process"
         self.client_socket.send(enc.encrypt(msg))
-
-
 
     def validate(self):
         # KH -- EXCISED PER LICENSING RESTRICTION
@@ -430,14 +429,13 @@ class ServerThread(threading.Thread):
         print('Terminating connection on', self.client_socket)
         logger.info('connection terminated: {}'.format(self.client_socket))
         sys.stdout.flush()
-        for i in range(0,10):
+        for i in range(0, 10):
             print('.', end='')
             sys.stdout.flush()
             time.sleep(0.15)
         self.client_socket.close()
         print('Socket closed')
         sys.stdout.flush()
-
 
     def key_exchange(self):
         dif = diffieHellman()
@@ -447,19 +445,22 @@ class ServerThread(threading.Thread):
         key = dif.genKey(other_key)
         return key
 
-
     def run(self):
         global enc
         key = self.key_exchange()
         enc = Encrypt(key)
-        self.client_socket.send(enc.encrypt(('Welcome to the Interview Portal')))
+        self.client_socket.send(
+            enc.encrypt(('Welcome to the Interview Portal')))
         time.sleep(0.1)
         _LOGIN_STATUS = self.validate()
         if _LOGIN_STATUS == True:
-            print('User', self._USER_NAME, 'has a log in status of', str(_LOGIN_STATUS))
-            logger.info('User {} has a login status of {}'.format(self._USER_NAME, str(_LOGIN_STATUS)))
+            print('User', self._USER_NAME, 'has a log in status of',
+                  str(_LOGIN_STATUS))
+            logger.info('User {} has a login status of {}'.format(
+                self._USER_NAME, str(_LOGIN_STATUS)))
         else:
-            logger.warning('Invalid login attempt with username {}'.format(self._USER_NAME))
+            logger.warning('Invalid login attempt with username {}'.format(
+                self._USER_NAME))
             CredentialsException()
             self.terminate_session()
             return
@@ -467,7 +468,9 @@ class ServerThread(threading.Thread):
         ##user options could be added easily by making the giveInterview call  ##
         ##conditional
         user_role = self.currentuser.getPer()
-        self.client_socket.send(enc.encrypt(str('{}'.format(db_interaction.getUserRole(user_role)))))
+        self.client_socket.send(
+            enc.encrypt(
+                str('{}'.format(db_interaction.getUserRole(user_role)))))
 
         if (user_role == 4):
             self.giveInterview()
