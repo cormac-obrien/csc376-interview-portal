@@ -7,28 +7,35 @@
 if __name__ == "__main__":
     import sys
     import socket
+    import ssl
     from serverthread import ServerThread
 
     argc = len(sys.argv)
+    connection_id = 1
 
     if (argc != 3):
-    	_HOST = str(input("Enter HOST name: "))
-    	_PORT = int(input("Enter PORT number: "))
+        _HOST = str(input("Enter HOST name: "))
+        _PORT = int(input("Enter PORT number: "))
     else:
-    	_HOST = str(sys.argv[1])
-    	_PORT = int(sys.argv[2])
-
+        _HOST = str(sys.argv[1])
+        _PORT = int(sys.argv[2])
+    
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server_socket.bind( (_HOST, _PORT ) )
+    server_socket.bind((_HOST, _PORT ))
+
     print('SERVER > Server established on :', _HOST)
     print('SERVER > Listening on port :', _PORT)
     server_socket.listen(5)
 
     while True:
-    	client_socket, client_addr = server_socket.accept()
-    	print("New client connecting")
-    	ServerThread(client_socket).start()
+        client_socket, client_addr = server_socket.accept()
+        ssl_socket = ssl.wrap_socket(client_socket, server_side=True, certfile="cert.pem", keyfile="cert.pem")
+        print("Client", client_addr, "connecting - ID:", connection_id)
+        ServerThread(ssl_socket, connection_id).start()
+        connection_id += 1
 
     print('SERVER > Server terminating' )
     server_socket.close()
+    ssl_socket.shutdown(socket.SHUT_RDWR)
+    ssl_socket.close()

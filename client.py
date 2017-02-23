@@ -4,14 +4,14 @@
 # For terms and conditions, please see the license file, which is
 # included in this distribution.
 
-from interview_error import CredentialsException
+#from interview_error import CredentialsException
 
 def terminate_session():
     print('Terminating connection to server')
     for i in range(0,10):
         print('.', end = '')
         sys.stdout.flush()
-    client_socket.close()
+    ssl_socket.close()
     print('Server socket closed')
     return
 
@@ -45,21 +45,36 @@ def adminMenu():
             sys.stdout.flush()
             answer_string = str(input(" > "))
             answer_string = enc.encrypt(answer_string)
-            client_socket.send(answer_string)
-            response = client_socket.recv(1024)
+            ssl_socket.send(answer_string)
+            response = ssl_socket.recv(1024)
             response = enc.decrypt(response)
-
-
 
 def validate(loggedInAs):
     # KH -- EXCISED PER LICENSING RESTRICTION
     pass
-
-
-
+    
+# CURRENT CERTIFICATE'S HOSTNAME IS 'localhost'
+# won't work if not using 'localhost' unless you create a new certificate with new host address as the certificate's commonName
+def ssl_connection(client_socket):
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_verify_locations("cert.pem")
+    # wrap client_socket, uses RSA encryption, certificate required
+    ssl_socket = ssl.wrap_socket(client_socket, ciphers="RSA:!COMPLEMENTOFALL", ca_certs="cert.pem", cert_reqs=ssl.CERT_REQUIRED)
+    # make connection
+    ssl_socket.connect((_HOST, _PORT))
+    # verify certificate and do handshake
+    cert = ssl_socket.getpeercert()
+    ssl.match_hostname(cert, _HOST)
+    ssl_socket.do_handshake()
+    return ssl_socket
+    
+# use:
+# openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout cert.pem
+# on the cmd line to generate new certificate (update ssl.match_hostname() parameter)
 if __name__ == "__main__":
     import sys
     import socket
+    import ssl
 
     argc = len(sys.argv)
 
@@ -71,20 +86,20 @@ if __name__ == "__main__":
         _PORT = int(sys.argv[2])
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((_HOST, _PORT))
+    ssl_socket = ssl_connection(client_socket)
 
     #Server greets client
-    greeting_msg = client_socket.recv(1024) 
+    greeting_msg = ssl_socket.recv(1024)
     greeting_msg = (greeting_msg).decode()
     print(greeting_msg)
 
     #Prompt For Password and Username
     USER_NAME = str(input("Username: "))
-    client_socket.send((USER_NAME).encode())
+    ssl_socket.send((USER_NAME).encode())
     USER_PW   = str(input("Password: "))
-    client_socket.send((USER_PW).encode())
+    ssl_socket.send((USER_PW).encode())
 
-    confirmation= str(client_socket.recv(1024).decode()) # confirms credentials
+    confirmation= str(ssl_socket.recv(1024).decode()) # confirms credentials
     print(confirmation)                             #print credentials
     try:
         cred = int(confirmation)
@@ -93,12 +108,12 @@ if __name__ == "__main__":
         terminate_session()
         sys.exit()
         
-
     if cred == 1:
         print("interviewee")
         #take interview
     elif cred == 2:
         print("lawyer")
+        adminMenu()
         #admin_interface
     elif cred == 3:
         print("other?")
