@@ -60,12 +60,11 @@ class ServerThread(threading.Thread):
     # - create interview option selected
     #
     # Postcondition:
-    # - question details recorded in database
+    # - interview recorded in database
     #
     # TO DO
-    # - encrypt/decrypt messages
     # - add database interactions
-    # - finalize interview structure (e.g. multiple answers or single answers?)
+    # - test/refine loop control
     # =========================================================================
     def create_interview(self):
         
@@ -78,44 +77,68 @@ class ServerThread(threading.Thread):
         
         # < name recorded here >
         
-        # QUESTION CREATION LOOP
+        # INTERVIEW CREATION LOOP
         while(True):
             
-            # question entry
-            self.client_socket.send('Enter a question')
-            print('You entered:')
-            print(self.client_socket.recv(1024))
-            
-            # ANSWER CREATION LOOP
-            while(True):
+            # verification loop
+            while(True):            
                 
-                #answer entry
-                self.client_socket.send('Enter the answer to the question')
+                # question entry
+                self.client_socket.send('Enter a question')
+                print('You entered:')
                 print(self.client_socket.recv(1024))
                 
-                # < answer recorded here >
+                # question verification (verification loop control)
+                self.client_socket.send('Add this question to the interview? Y/N')
+                verify = self.client_socket.recv(1024)
                 
-                
-                # < multiple answers? >
-                
-                break
-                
-            # SUBSEQUENT QUESTIONS LOOP
-            self.client_socket.send('Would you like to add another question?')
+                # Y: link question to interview (terminate loop)
+                if verify == 'Y':
+                    # < record question to database >
+                    self.client_socket.send('Question added to interview.')
+                    break
+                # N: re-enter question (repeat loop)
+                elif verify == 'N':
+                    continue
+                # invalid (error msg + repeat verification loop)
+                else:
+                    self.client_socket.send('Invalid Input!  Please answer with Y or N')
+                    
+            # interview progression (interview creation loop control)
+            self.client_socket.send('Would you like to add another question? Y/N')
             response = self.client_socket.recv(1024)
             
-            # N - interview complete
+            # N: submit interview to database (terminate loop)
             if response == 'N':
-                
-                # < interview finalized here >
-                
+                # < interview added to database >
+                self.client_socket.send('Interview added to database.')
                 break
-            # Y continue adding questions (repeat loop)
+            # Y: continue adding questions (repeat loop)
             elif response == 'Y':
                 continue
-            # invalid response
+            # invalid response (error msg)
             else:
                 self.client_socket.send('Invalid Response!')
+        
+        # post-interview completion options
+        self.client_socket.send('What would you like to do now? (choose one)')
+        self.client_socket.send('A: Assign recently completed interview to interviewee(s)')
+        self.client_socket.send('I: Create another interview')        
+        self.client_socket.send('Q: Return to main menu')
+        option = self.client_socket.recv(1024)
+        
+        if option == 'A':
+            # < assignment function/process here >
+            pass
+        elif option == 'I':
+            continue
+        elif option == 'Q':
+            # < redirect to main menu >
+            break
+        else:
+            self.client_socket.send('Invalid Response!')   
+        
+        # remove pass when code is complete
         pass
     
     # ===========================================================================
