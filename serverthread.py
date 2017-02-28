@@ -63,7 +63,8 @@ class ServerThread(threading.Thread):
     # - interview recorded in database
     #
     # TO DO
-    # - add database interactions
+    # - PROTOCOL: add database interactions
+    # - ENCRYPTION: add redirect to main menu
     # - test/refine loop control
     # =========================================================================
     def create_interview(self):
@@ -94,13 +95,13 @@ class ServerThread(threading.Thread):
                 
                 # Y: link question to interview (terminate loop)
                 if verify == 'Y':
-                    # < record question to database >
+                    # <PROTOCOL: record question to database >
                     self.client_socket.send('Question added to interview.')
                     break
                 # N: re-enter question (repeat loop)
                 elif verify == 'N':
                     continue
-                # invalid (error msg + repeat verification loop)
+                # invalid (error msg)
                 else:
                     self.client_socket.send('Invalid Input!  Please answer with Y or N')
                     
@@ -110,7 +111,7 @@ class ServerThread(threading.Thread):
             
             # N: submit interview to database (terminate loop)
             if response == 'N':
-                # < interview added to database >
+                # <PROTOCOL: interview added to database >
                 self.client_socket.send('Interview added to database.')
                 break
             # Y: continue adding questions (repeat loop)
@@ -124,17 +125,21 @@ class ServerThread(threading.Thread):
         self.client_socket.send('What would you like to do now? (choose one)')
         self.client_socket.send('A: Assign recently completed interview to interviewee(s)')
         self.client_socket.send('I: Create another interview')        
-        self.client_socket.send('Q: Return to main menu')
+        self.client_socket.send('Q: Log out and return to main menu')
         option = self.client_socket.recv(1024)
         
+        # A: assign interview (terminate loop)
         if option == 'A':
-            # < assignment function/process here >
-            pass
+            # <PROTOCOL: assignment function/process here >
+            break
+        # I: create another interview (repeat loop)
         elif option == 'I':
             continue
+        # Q: return to main menu (terminate loop)
         elif option == 'Q':
-            # < redirect to main menu >
+            # <ENCRYPTION: redirect to main menu >
             break
+        # invalid response (error msg)
         else:
             self.client_socket.send('Invalid Response!')   
         
@@ -164,7 +169,7 @@ class ServerThread(threading.Thread):
         pass
     
     # ===========================================================================
-    #             INTERVIEW Review   
+    #             INTERVIEW REVIEW  
     # Status: Incomplete
     # 
     # Precondition(s):
@@ -181,7 +186,7 @@ class ServerThread(threading.Thread):
     # =============================================================================
     def review_interview(self):
 
-        # interview creation intro
+        # interview review intro
         self.client_socket.send('Interview Inbox')
         
         # interview retrieval
@@ -197,3 +202,130 @@ class ServerThread(threading.Thread):
         
         pass
         
+    # ===========================================================================
+    #             TAKE INTERVIEW   
+    # Status: Incomplete
+    # 
+    # Precondition(s):
+    # - interviewee account session
+    # - interview linked to interviewee
+    #
+    # Postcondition: 
+    # - answers linked to questions of interview in database
+    #
+    # TO DO
+    # - PROTOCOL: add database interactions
+    # - ENCRYPTION: add redirect to main menu
+    # - test/refine loop control
+    # =============================================================================
+    def take_interview(self):
+        
+        # INTERVIEW LOOP
+        while(True):
+            
+            # interview review intro
+            self.client_socket.send('Your available interviews:')
+            # <PROTOCOL: generate interviewee's interview list from database >
+            # display <none> if none exist
+            
+            # interview selection <PROTOCOL: search criteria?>
+            self.client_socket.send('Select an interview to take')
+            self.client_socket.recv(1024)
+        
+            # <PROTOCOL: 
+            #    - retrieve interview based on criteria
+            #    - generate loop for each question
+            #    - for each question, ask for answer, link it to question
+            #    - add interview to review list>
+        
+            self.client_socket.send('Interview complete')
+            
+            # post-interview options (interview loop control)
+            self.client_socket.send('What would you like to do now? (choose one)')
+            self.client_socket.send('I: Take another interview')
+            self.client_socket.send('Q: Log out and return to main menu')
+            option = self.client_socket.recv(1024)
+            
+            # I: take another interview (repeat loop)
+            if option == 'I':
+                continue
+            # Q: return to main menu (terminate loop)
+            elif option == 'Q':
+                # <ENCRYPTION: redirect to main menu>
+                break
+            # invalid response
+            else:
+                self.client_socket.send('Invalid Input!')
+        
+        # remove pass when code is done
+        pass
+    
+    # ===========================================================================
+    #             MANAGE INTERVIEW   (extra feature)
+    # Status: Incomplete
+    # 
+    # Precondition(s):
+    # - Lawyer/Staff account session
+    #
+    # Postcondition: 
+    # - interview edited in database, interview deleted from database, or
+    #   return to main menu
+    #
+    # TO DO
+    # - PROTOCOL: add database interactions
+    # - ENCRYPTION: add redirect to main menu
+    # - test/refine loop control
+    # =============================================================================
+    def manage_interview(self):
+        
+        # EDIT INTERVIEW LOOP
+        while(True):
+
+            # edit options (edit interview loop control)
+            self.client_socket.send('What would you like to do? (choose one)')
+            self.client_socket.send('E: Edit/View an interview')
+            self.client_socket.send('D: Delete an interview')
+            self.client_socket.send('Q: Log out and return to main menu')
+            option = self.client_socket.recv(1024)
+            
+            # E: edit interview (go through edit process then repeat loop)
+            if option == 'E':
+                # interview summary
+                self.client_socket.send('Created Interviews:')
+                # <PROTOCOL: generate interview list from database >
+                # display <none> if none exist
+                
+                # interview selection <PROTOCOL: search criteria?>
+                self.client_socket.send('Select an interview to edit')
+                self.client_socket.recv(1024)
+        
+                # <PROTOCOL: 
+                #    - retrieve interview based on criteria
+                #    - ask for name change; if yes, make database changes
+                #    - generate loop for each question
+                #    - ask for question edit; if yes, make database changes>
+        
+                self.client_socket.send('All changes saved.')
+            # D: delete interview (go through delete process then repeat loop)
+            elif option == 'D':
+                # interview summary
+                self.client_socket.send('Created Interviews:')
+                # <PROTOCOL: generate interview list from database >
+                # display <none> if none exist
+                
+                # interview selection <PROTOCOL: search criteria?>
+                self.client_socket.send('Select an interview to delete')
+                self.client_socket.recv(1024)
+        
+                # <PROTOCOL: delete interview from database>
+                self.client_socket.send('Interview removed.')
+            # Q: return to main menu (terminate loop)
+            elif option == 'Q':
+                # <ENCRYPTION: redirect to main menu>
+                break
+            # invalid response
+            else:
+                self.client_socket.send('Invalid Input!')
+                        
+        # remove pass when code is done
+        pass
