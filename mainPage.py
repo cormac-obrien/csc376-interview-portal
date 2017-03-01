@@ -12,3 +12,6 @@ class MainPage(webapp2.RequestHandler):
 
         self.response.write(
             '<html><body>{}</body></html>'.format(greeting))
+        
+        
+        ''' From https://cloud.google.com/appengine/docs/standard/python/users/'''
