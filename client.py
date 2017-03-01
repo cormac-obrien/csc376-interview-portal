@@ -15,7 +15,7 @@ def terminate_session():
     print('Server socket closed')
     return
 
-def adminMenu():
+def adminMenu(ssl_socket):
     print("What would you like to do?")
     print("(1) create interview")
     print("(2) review interview")
@@ -25,6 +25,10 @@ def adminMenu():
 
     response = str(input(" > "))
 
+    ssl_socket.send((response).encode())
+
+    confirmation = ssl_socket.recv(1024).decode()
+    print(confirmation)
     while True:
         if response == '1':
             createInterview()
@@ -39,15 +43,84 @@ def adminMenu():
             listUsers()
             break
         else:
-            print()
-            terminate_session()
-            if (len(response) != 0): print(response)
+            #print()
+            #terminate_session()
+            #if (len(response) != 0): print(response)
             sys.stdout.flush()
-            answer_string = str(input(" > "))
-            answer_string = enc.encrypt(answer_string)
-            ssl_socket.send(answer_string)
-            response = ssl_socket.recv(1024)
-            response = enc.decrypt(response)
+            return
+            #answer_string = str(input(" > "))
+            #answer_string = enc.encrypt(answer_string)
+            #ssl_socket.send(answer_string)
+            #response = ssl_socket.recv(1024)
+            #response = enc.decrypt(response)
+
+
+def createInterview():
+	pass
+def reviewInterview():
+	pass
+
+       
+# ===========================================================================
+#             INTERVIEW ASSIGNMENT   
+# Status: Incomplete
+# 
+# Precondition(s): 
+# - interview exists
+# - interviewee exists
+#
+# Postcondition:
+# - interviewee can access interview
+#
+# TO DO
+# - encrypt/decrypt messages
+# - finalize interview assignment design (e.g. single or multiple assignment?)
+# =============================================================================
+
+def assignInterview():
+
+	# Get name of Interviewee
+	print("Enter the username of the interviewee:")
+	user = str(input(" > "))
+
+	#Confirms that the interviewee exists
+
+	ssl_socket.send(( user ).encode()) 									#User_Search
+	user_conf = ssl_socket.recv(1024).decode()
+
+	#if no existing user
+	while user_conf != "User does not exist, try again.":
+		print(user_conf)
+		user = str(input(" > "))
+		ssl_socket.send(( user ).encode())								#User_Search
+		if user == 'quit':
+			return
+		user_conf = ssl_socket.recv(1024).decode()
+		
+	print(user_conf)
+
+	# Get name of Interview
+	print("Enter the name of the interviewer you wish to assign:")
+	interview = str(input(" > "))
+
+	#Confirms that the interview exists
+
+	ssl_socket.send(( interview ).encode())								#Interview_Search
+	interview_conf = ssl_socket.recv(1024).decode()			
+	#if no existing user
+	while interview_conf != "Interview does not exist, try again.":
+		print(interview_conf)
+		interview = str(input(" > "))
+		ssl_socket.send(( interview ).encode())							#Interview_Search
+		if interview == 'quit':
+			return
+		interview_conf = ssl_socket.recv(1024).decode()
+
+	print(interview_conf)	# Assigning Interview
+	interview_conf = ssl_socket.recv(1024).decode() #
+	print(interview_conf)	# INTERVIEW has been assigned to USER
+
+	pass
 
 def validate(loggedInAs):
     # KH -- EXCISED PER LICENSING RESTRICTION
@@ -113,7 +186,7 @@ if __name__ == "__main__":
         #take interview
     elif cred == 2:
         print("lawyer")
-        adminMenu()
+        adminMenu(ssl_socket)
         #admin_interface
     elif cred == 3:
         print("other?")
