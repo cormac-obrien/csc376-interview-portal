@@ -120,7 +120,7 @@ class ServerThread(threading.Thread):
         # remove pass when code is complete
         pass
     
-        # ===========================================================================
+    # ===========================================================================
     #             INTERVIEW ASSIGNMENT   
     # Status: Incomplete
     # 
@@ -194,7 +194,7 @@ class ServerThread(threading.Thread):
         pass
     
     # ===========================================================================
-    #             INTERVIEW REVIEW  
+    #             REVIEW SUBMISSIONS  
     # Status: Incomplete
     # 
     # Precondition(s):
@@ -209,7 +209,7 @@ class ServerThread(threading.Thread):
     # - add database interactions
     # - finalize interview review design 
     # =============================================================================
-    def review_interview(self):
+    def review_submissions(self):
 
         # interview review intro
         self.client_socket.send( ('Interview Inbox').encode() )
@@ -301,7 +301,7 @@ class ServerThread(threading.Thread):
     # - ENCRYPTION: add redirect to main menu
     # - test/refine loop control
     # =============================================================================
-    def manage_interview(self):
+    def manage_interviews(self):
         
         # EDIT INTERVIEW LOOP
         while(True):
@@ -378,13 +378,13 @@ class ServerThread(threading.Thread):
                 self.create_interview()
                 return
             elif response == '2':
-                self.review_interview()
+                self.review_submissions()
                 
             elif response == '3':
                 self.assign_interview()
                 return
             elif response == '4':
-                self.manage_interview()
+                self.manage_interviews()
                 return
             elif response == '4':
                 self.take_interview()
