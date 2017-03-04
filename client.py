@@ -55,14 +55,130 @@ def adminMenu(ssl_socket):
             #response = enc.decrypt(response)
 
 
-def createInterview():
-	pass
-def reviewInterview():
-	pass
 
+# =========================================================================
+#             LAWYER: INTERVIEW CREATION   
+# Status: Incomplete (skeleton finished)
+# 
+# Precondition: 
+# - Lawyer/Staff access
+# - create interview option selected
+#
+# Postcondition:
+# - interview recorded in database
+#
+# TO DO
+# - PROTOCOL: add database interactions
+# - ENCRYPTION: add redirect to main menu
+# - SYNC: test/refine loop control
+# =========================================================================
+
+def create_interview():
+    
+    # incoming intro message
+    intro_msg = client_socket.recv(1024)
+    if(len(intro_msg) != 0):
+        print(intro_msg)
+    
+    # incoming name entry request
+    name_msg = client_socket.recv(1024)
+    if(len(name_msg) != 0):
+        print(name_msg)
+    
+    # outgoing name submission
+    name_entry = str(input(' > '))
+    client_socket.send(name_entry)
+    
+    ## INTERVIEW CREATION LOOP ##
+    while(True):
+        
+        ## question verification loop ##
+        while(True):
+            
+            # incoming question entry request
+            question_msg = client_socket.recv(1024)
+            if(len(question_msg) != 0):
+                print(question_msg)
+            
+            # outgoing question submission (String)
+            question_entry = str(input(' > '))
+            client_socket.send(question_entry)
+            
+            # incoming question echo
+            echo = client_socket.recv(1024)
+            if(len(echo) != 0):
+                print(echo)
+            
+            # incoming verify request
+            verify_msg = client_socket.recv(1024)
+            if(len(verify_msg) != 0):
+                print(verify_msg)
+            
+            # outgoing verification (String) Y/N
+            verify_entry = str(input(' > ')) 
+            client_socket.send(verify_entry)
+            
+            ## INNER LOOP CONTROL ##
+            # Y: save question (terminate loop)
+            if verify_entry == 'Y':
+                
+                # incoming confirmation message
+                confirm_msg = client_socket.recv(1024)
+                if(len(confirm_msg) != 0):
+                    print(confirm_msg)
+                break
+            
+            # N: redo question (loop again)
+            elif verify_entry == 'N':
+                continue
+            
+            # invalid response
+            else:
+                invalid_resp = client_socket.recv(1024)
+                if(len(invalid_resp) != 0):
+                    print(invalid_resp)    
+        
+        ## OUTER LOOP CONTROL ##
+        
+        # incoming request for more questions
+        add_msg = client_socket.recv(1024)
+        if(len(add_msg) != 0)
+            print(add_msg)
+        
+        # outgoing response (String) Y/N
+        add_resp = input(str(' > '))
+        client_socket.send(add_resp)
+        
+        # N: add new interview to database (terminate loop)
+        if add_resp == 'N':
+            
+            # incoming confirmation message
+            db_msg = client_socket.recv(1024)
+            if(len(db_msg) != 0):
+                print(db_msg)
+            break
+        
+        # Y: add more questions (loop again)
+        elif add_resp == 'Y':
+            continue
+        
+        # invalid response
+        else:
+            invalid_resp = client_socket.recv(1024)
+            if(len(invalid_resp) != 0):
+                print(invalid_resp)    
+        
+        ## post-interview display ##
+        
+        # <PROTOCOL: retrieve interview from database and display full details?>
+        
+        # END create_interview: back to Lawyer Options
+    
+    # remove pass when code is complete
+    pass
        
 # ===========================================================================
-#             INTERVIEW ASSIGNMENT   
+#             LAWYER: INTERVIEW ASSIGNMENT   
 # Status: Incomplete
 # 
 # Precondition(s): 
@@ -121,6 +237,204 @@ def assignInterview():
 	print(interview_conf)	# INTERVIEW has been assigned to USER
 
 	pass
+    
+def review_submissions():
+    pass
+
+# ===========================================================================
+#             LAWYER: MANAGE INTERVIEWS
+# Status: Incomplete (skeleton finished)
+# 
+# Precondition(s):
+# - Lawyer/Staff account session
+#
+# Postcondition: 
+# - interview edited in database, interview deleted from database, or
+#   return to main menu
+#
+# TO DO
+# - PROTOCOL: add database interactions
+# - ENCRYPTION: add redirect to main menu
+# - test/refine loop control
+# =============================================================================
+def manage_interviews():
+    
+    ## MANAGE_INTERVIEWS LOOP ##
+    while(True):
+        
+        ## options display ##
+    
+        # incoming option messages
+        option_msg = client_socket.recv(1024)
+        option_e = client_socket.recv(1024)
+        option_d = client_socket.recv(1024)
+        option_q = client_socket.recv(1024)
+        
+        if(option_msg != 0 and
+           option_e   != 0 and
+           option_d   != 0 and 
+           option_q   != 0    ):
+            print(option_msg)
+            print(option_e)
+            print(option_d)
+            print(option_q)
+         
+        ## LOOP CONTROL ##
+            
+        # outgoing option response
+        option_resp = str(input(' > '))
+        client_socket.send(option_resp)
+        
+        # E: edit/view created interviews
+        if option_resp == 'E':
+            
+            # incoming edit/view intro message
+            edit_msg = client_socket.recv(1024)
+            if(len(edit_msg) != 0):
+                print(edit_msg)
+                
+            # <PROTOCOL: generate interview list from database >
+            # display <none> if none exist
+            
+            # incoming interview selection message
+            select_msg = client_socket.recv(1024)
+            if(len(select_msg) != 0):
+                print(select_msg)
+                
+            # outgoing interview selection entry
+            select_entry = str(input(' > '))
+            client_socket.send(select_entry)
+            
+            # <PROTOCOL: 
+            #    - retrieve interview based on criteria
+            #    - ask for name change; if yes, make database changes
+            #    - generate loop for each question
+            #    - ask for question edit; if yes, make database changes>
+            
+            # incoming confirmation message
+            confirm_msg = client_socket.recv(1024)
+            if(len(confirm_msg) != 0):
+                print(confirm_msg)
+        
+        # D: remove created interview
+        elif option_resp == 'D':
+            
+            ## verification loop ##
+            while(True):
+                
+                # incoming delete intro message
+                delete_msg = client_socket.recv(1024)
+                if(len(delete_msg) != 0):
+                    print(delete_msg)
+                    
+                # <PROTOCOL: generate interview list from database >
+                # display <none> if none exist
+                
+                # incoming interview selection message
+                select_msg = client_socket.recv(1024)
+                if(len(select_msg) != 0):
+                    print(select_msg)
+                
+                # outgoing interview selection entry
+                select_entry = str(input(' > '))
+                client_socket.send(select_entry)
+                
+                ## LOOP CONTROL ##
+                
+                # incoming verify request
+                verify_msg = client_socket.recv(1024)
+                if(len(verify_msg) != 0):
+                    print(verify_msg)
+            
+                # outgoing verification (String) Y/N
+                verify_entry = str(input(' > ')) 
+                client_socket.send(verify_entry)
+                
+                # Y: confirm selection
+                if verify_entry == 'Y':
+                    
+                    # incoming confirmation message
+                    confirm_msg = client_socket.recv(1024)
+                    if(len(confirm_msg) != 0):
+                        print(confirm_msg)
+                    break
+                
+                # N: redo selection
+                elif verify_entry == 'N':
+                    continue
+                
+                # invalid response
+                else:
+                    
+                    invalid_resp = client_socket.recv(1024)
+                    if(len(invalid_resp) != 0):
+                        print(invalid_resp)    
+                
+        
+        # Q: return to Lawyer Options
+        elif option_resp == 'Q':
+            break
+        
+        # invalid response
+        else:
+            
+            invalid_resp = client_socket.recv(1024)
+            if(len(invalid_resp) != 0):
+                print(invalid_resp)    
+        
+    # remove pass when code is complete    
+    pass
+
+# ===========================================================================
+#             INTERVIEWEE: TAKE INTERVIEW   
+# Status: Incomplete (skeleton finished)
+# 
+# Precondition(s):
+# - interviewee account session
+# - interview linked to interviewee
+#
+# Postcondition: 
+# - answers linked to questions of interview in database
+#
+# TO DO
+# - PROTOCOL: add database interactions
+# - SYNC: test/refine loop control
+# =============================================================================
+def take_interview():
+    
+    # incoming intro message
+    intro_msg = client_socket.recv(1024)
+    if(len(intro_msg) != 0):
+        print(intro_msg)
+        
+    # assigned interview list
+    # <PROTOCOL: generate interviewee's interview list from database?>
+    # display <none> if none exist
+    
+    # incoming interview selection request
+    select_msg = client_socket.recv(1024)
+    if(len(select_msg) != 0):
+        print(select_msg)
+    
+    # outgoing interview selection entry
+    select_entry = input(str(' > '))
+    client_socket.send(select_entry)
+    
+    # <PROTOCOL: 
+    #    - retrieve interview based on criteria
+    #    - generate loop for each question
+    #    - for each question, ask for answer, link it to question
+    #    - add interview to review list>
+    
+    # incoming confirmation message
+    confirm_msg = client_socket.recv(1024)
+    if(len(confirm_msg) != 0):
+        print(confirm_msg)
+        
+    # END take_interview: return to Interviewee Options
+    
+    # remove pass when code is complete
+    pass
 
 def validate(loggedInAs):
     # KH -- EXCISED PER LICENSING RESTRICTION
