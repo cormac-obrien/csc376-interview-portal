@@ -205,7 +205,7 @@ def assignInterview():
 	user_conf = ssl_socket.recv(1024).decode()
 
 	#if no existing user
-	while user_conf != "User does not exist, try again.":
+	while user_conf != "User exists":
 		print(user_conf)
 		user = str(input(" > "))
 		ssl_socket.send(( user ).encode())								#User_Search
@@ -216,7 +216,7 @@ def assignInterview():
 	print(user_conf)
 
 	# Get name of Interview
-	print("Enter the name of the interviewer you wish to assign:")
+	print("Enter the name of the interviewe you wish to assign:")
 	interview = str(input(" > "))
 
 	#Confirms that the interview exists
@@ -224,7 +224,7 @@ def assignInterview():
 	ssl_socket.send(( interview ).encode())								#Interview_Search
 	interview_conf = ssl_socket.recv(1024).decode()			
 	#if no existing user
-	while interview_conf != "Interview does not exist, try again.":
+	while interview_conf == "Interview does not exist, try again.":
 		print(interview_conf)
 		interview = str(input(" > "))
 		ssl_socket.send(( interview ).encode())							#Interview_Search
@@ -235,6 +235,7 @@ def assignInterview():
 	print(interview_conf)	# Assigning Interview
 	interview_conf = ssl_socket.recv(1024).decode() #
 	print(interview_conf)	# INTERVIEW has been assigned to USER
+<<<<<<< HEAD
 
 	pass
     
@@ -435,6 +436,10 @@ def take_interview():
     
     # remove pass when code is complete
     pass
+=======
+	return
+	#pass
+>>>>>>> branch 'master' of https://github.com/cormac-obrien/csc376-interview-portal.git
 
 def validate(loggedInAs):
     # KH -- EXCISED PER LICENSING RESTRICTION
@@ -479,6 +484,18 @@ if __name__ == "__main__":
     greeting_msg = ssl_socket.recv(1024)
     greeting_msg = (greeting_msg).decode()
     print(greeting_msg)
+
+    #Ask user to login or create new account
+    print("(1) Login.")
+    print("(2) Create New User.")
+    response = str(input("> "))
+    ssl_socket.send((response).encode())
+
+    if (response == '2'):
+    	new_USER_NAME = str(input("Enter Username: "))
+    	ssl_socket.send((new_USER_NAME).encode())
+    	USER_AUTH     = str(input("Enter Authorization: "))
+    	ssl_socket.send((USER_AUTH).encode())
 
     #Prompt For Password and Username
     USER_NAME = str(input("Username: "))
