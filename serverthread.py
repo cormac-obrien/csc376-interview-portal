@@ -143,13 +143,13 @@ class ServerThread(threading.Thread):
         self.client_socket.send( ('Interview Assignment').encode( ))
 
         #Recieves a username from client
-        User_Search = self.client_socket.recv(1024).decode()
+        User_Search = self.client_socket.recv(1024).decode() # "Enter the username of the interviewee:"
 
         ###CHECK DATABASE FOR###
         # import sqlite3 first
         conn= sqlite3.connect( 'interview.db' )
-        conn.row_factory = sqlite3.Row
-        User_Row = conn.execute("SELECT user_name FROM Users WHERE user_name = ?", User_Search).fetchone() 
+        #conn.row_factory = sqlite3.Row
+        User_Row = conn.execute("SELECT user_id, user_name FROM Users WHERE user_name = ?", (User_Search,)).fetchone() 
 
         #if no existing user
         while User_Row == None: #invalid user
@@ -158,10 +158,10 @@ class ServerThread(threading.Thread):
                 return
             User_Search = self.client_socket.recv(1024).decode()
             conn.row_factory = sqlite3.Row
-            User_Row = conn.execute("SELECT user_name FROM Users WHERE user_name = ?", User_Search).fetchone() 
+            User_Row = conn.execute("SELECT user_id, user_name FROM Users WHERE user_name = ?", (User_Search,)).fetchone() 
         
         self.client_socket.send( ('User exists').encode() )#user_conf
-        User_Found = User_Row['user_name']
+        User_Found = User_Row[0]
         
         #else
         #Recieves a interview from client
@@ -170,8 +170,8 @@ class ServerThread(threading.Thread):
         Interview_Search = self.client_socket.recv(1024).decode()
 
         ###CHECK DATABASE FOR INTERVIEW###
-        conn.row_factory = sqlite3.Row
-        Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", Interview_Search).fetchone()
+        #conn.row_factory = sqlite3.Row
+        Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", (Interview_Search,)).fetchone()
 
 
         #if no existing user
@@ -181,7 +181,7 @@ class ServerThread(threading.Thread):
                 return
             Interview_Search = self.client_socket.recv(1024).decode()
             conn.row_factory = sqlite3.Row
-            Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", Interview_Search).fetchone() 
+            Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", (Interview_Search,)).fetchone() 
         Interview_Found = Interview_Row['interview_name']
 
         self.client_socket.send( ('Assigning Interview').encode() ) #interview_conf
@@ -313,62 +313,117 @@ class ServerThread(threading.Thread):
             self.client_socket.send( ('Q: Log out and return to main menu').encode() )
             option = self.client_socket.recv(1024)
             
+            conn = splite3.connect('interview.db') #temporary databse
+
             # E: edit interview (go through edit process then repeat loop)
             if option == 'E':
                 # interview summary
                 self.client_socket.send( ('Created Interviews:').encode() )
+
                 # <PROTOCOL: generate interview list from database >
+                cur = conn.execute("SELECT interview_id, interview_name from Interviews")
+                curLen = len(cur)
+                if (cur == None):
+                    self.client_socket.send( ('No Interviews available').encode() )
+                    conn.close()
+                    return
+                for row in cur:
+                    print ("( ", row[0], " ) ", row[1] )
+
                 # display <none> if none exist
                 
                 # interview selection <PROTOCOL: search criteria?>
                 self.client_socket.send( ('Select an interview to edit').encode() )
-                self.client_socket.recv(1024)
-        
+                interview_ind = int(self.client_socket.recv(1024).decode())
+
+                #j
+                
                 # <PROTOCOL: 
-                #    - retrieve interview based on criteria
+                new_name = str(self.client_socket.recv(1024).decode()) #Enter the new name of the interview
+
                 #    - ask for name change; if yes, make database changes
+                cur.execute("UPDATE Interviews set interview_name = ? where interview_id =?",(new_name, interview_ind) )
+                conn.commit()
                 #    - generate loop for each question
                 #    - ask for question edit; if yes, make database changes>
+
+
         
                 self.client_socket.send( ('All changes saved.').encode() )
+
+
             # D: delete interview (go through delete process then repeat loop)
             elif option == 'D':
                 # interview summary
                 self.client_socket.send( ('Created Interviews:').encode() )
                 # <PROTOCOL: generate interview list from database >
+                cur = conn.execute("SELECT interview_id, interview_name from Interviews")
+                for row in cur:
+                    print ("( ", row[0], " ) ", row[1])
+
                 # display <none> if none exist
-                
+
                 # interview selection <PROTOCOL: search criteria?>
                 self.client_socket.send( ('Select an interview to delete').encode() )
-                self.client_socket.recv(1024)
+                interview_ind = int(self.client_socket.recv(1024).decode())
+                cur.execute("DELETE from Interviews where interview_id =?",(interview_ind,))
+                conn.commit()
+ 
         
                 # <PROTOCOL: delete interview from database>
                 self.client_socket.send( ('Interview removed.').encode() )
+
+
             # Q: return to main menu (terminate loop)
             elif option == 'Q':
                 # <ENCRYPTION: redirect to main menu>
                 break
+
+
             # invalid response
             else:
                 self.client_socket.send( ('Invalid Input!').encode() )
-                        
+            
         # remove pass when code is done
+        conn.close()
         pass
 
 
     def run(self):
     #greet and request username and password
-        self.client_socket.send( ('Greetings to the Interview Portal').encode() )
+        self.client_socket.send( ('Welcome to the Interview Portal').encode() )
+
+        conn= sqlite3.connect( 'interview.db' )
+        cur = conn.cursor()
+
+        #Creating a new user
+        response = str(self.client_socket.recv(1024).decode()) # User chooses to login or create a new account
+        if (response == '2'):
+            self._USER_NAME = str(self.client_socket.recv(1024).decode())
+            self._USER_AUTH = int(self.client_socket.recv(1024).decode())
+            cur.execute("INSERT INTO Users ( user_name, user_perms) VALUES ( ?, ?);", (self._USER_NAME, self._USER_AUTH))
+            conn.commit()
 
         self._USER_NAME = str(self.client_socket.recv(1024).decode())
-        self._USER_PW  = str(self.client_socket.recv(1024).decode())
+        self._USER_PW   = str(self.client_socket.recv(1024).decode())
 
         ##Authentication stuff
         ##
         ##
-        _LOGIN_STATUS = (self._USER_NAME == self._USER_PW)
+        ##
+        #Searches database for username and password
 
-        #_LOGIN_STATUS = self.validate()
+        User_Row = conn.execute("SELECT user_name FROM Users WHERE user_name = ?", (self._USER_NAME,)).fetchone()
+        conn.close()
+     
+        ##
+        ##
+        ##
+        ##
+        ##
+
+        _LOGIN_STATUS = (User_Row != None)
+
        
         if _LOGIN_STATUS == True:
             self.client_socket.send( ('2').encode() )
