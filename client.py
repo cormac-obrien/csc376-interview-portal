@@ -142,7 +142,7 @@ def create_interview():
         
         # incoming request for more questions
         add_msg = client_socket.recv(1024)
-        if(len(add_msg) != 0)
+        if(len(add_msg) != 0):
             print(add_msg)
         
         # outgoing response (String) Y/N
@@ -235,7 +235,7 @@ def assignInterview():
 	print(interview_conf)	# Assigning Interview
 	interview_conf = ssl_socket.recv(1024).decode() #
 	print(interview_conf)	# INTERVIEW has been assigned to USER
-<<<<<<< HEAD
+
 
 	pass
     
@@ -436,10 +436,8 @@ def take_interview():
     
     # remove pass when code is complete
     pass
-=======
-	return
-	#pass
->>>>>>> branch 'master' of https://github.com/cormac-obrien/csc376-interview-portal.git
+
+
 
 def validate(loggedInAs):
     # KH -- EXCISED PER LICENSING RESTRICTION

@@ -243,7 +243,7 @@ class ServerThread(threading.Thread):
             self.client_socket.send( ('Q: Back to Lawyer Options').encode() )
             option = self.client_socket.recv(1024)
             
-            conn = splite3.connect('interview.db') #temporary databse
+            conn = splite3.connect('interview.db') #temporary database
 
             # E: edit interview (go through edit process then repeat loop)
             if option == 'E':
@@ -264,15 +264,12 @@ class ServerThread(threading.Thread):
                 
                 # interview selection <PROTOCOL: search by sequence number>
                 self.client_socket.send( ('Select an interview to edit').encode() )
-<<<<<<< HEAD
-                interview_sel = self.client_socket.recv(1024)
-        
-=======
+
                 interview_ind = int(self.client_socket.recv(1024).decode())
 
                 #j
                 
->>>>>>> branch 'master' of https://github.com/cormac-obrien/csc376-interview-portal.git
+
                 # <PROTOCOL: 
                 new_name = str(self.client_socket.recv(1024).decode()) #Enter the new name of the interview
 
@@ -289,7 +286,6 @@ class ServerThread(threading.Thread):
 
             # D: delete interview (go through delete process then repeat loop)
             elif option == 'D':
-<<<<<<< HEAD
                 
                 # verification loop
                 while(True):
@@ -297,11 +293,15 @@ class ServerThread(threading.Thread):
                     # interview summary
                     self.client_socket.send( ('Created Interviews:').encode() )
                     # <PROTOCOL: generate interview list from database >
+                    cur = conn.execute("SELECT interview_id, interview_name from Interviews")
+                    for row in cur:
+                        print ("( ", row[0], " ) ", row[1])
+
                     # display <none> if none exist
                 
                     # interview selection <PROTOCOL: search by sequence number>
                     self.client_socket.send( ('Select an interview to delete').encode() )
-                    interview_sel = self.client_socket.recv(1024)
+                    interview_ind = int(self.client_socket.recv(1024).decode())
                     
                     # loop control
                     self.client_socket.send('Remove <INTERVIEW NAME> from database? Y/N')
@@ -310,6 +310,9 @@ class ServerThread(threading.Thread):
                     # Y: remove selection from database (terminate loop)
                     if verify == 'Y':
                         # <PROTOCOL: delete interview from database>
+                        cur.execute("DELETE from Interviews where interview_id =?",(interview_ind,))
+                        conn.commit()
+                        
                         self.client_socket.send( ('<INTERVIEW NAME> removed.').encode() )
                         break
                     # N: make a different selection
@@ -318,43 +321,18 @@ class ServerThread(threading.Thread):
                     # invalid response
                     else:
                         self.client_socket.send('Invalid Input! Please answer with Y or N')
-                         
-            # Q: return to Lawyer Options (terminate loop)
-=======
-                # interview summary
-                self.client_socket.send( ('Created Interviews:').encode() )
-                # <PROTOCOL: generate interview list from database >
-                cur = conn.execute("SELECT interview_id, interview_name from Interviews")
-                for row in cur:
-                    print ("( ", row[0], " ) ", row[1])
-
-                # display <none> if none exist
-
-                # interview selection <PROTOCOL: search criteria?>
-                self.client_socket.send( ('Select an interview to delete').encode() )
-                interview_ind = int(self.client_socket.recv(1024).decode())
-                cur.execute("DELETE from Interviews where interview_id =?",(interview_ind,))
-                conn.commit()
- 
-        
-                # <PROTOCOL: delete interview from database>
-                self.client_socket.send( ('Interview removed.').encode() )
-
 
             # Q: return to main menu (terminate loop)
->>>>>>> branch 'master' of https://github.com/cormac-obrien/csc376-interview-portal.git
             elif option == 'Q':
                 break
-
 
             # invalid response
             else:
                 self.client_socket.send( ('Invalid Input!').encode() )
-<<<<<<< HEAD
+
                         
         # END manage_interviews: return to Lawyer Options
-=======
->>>>>>> branch 'master' of https://github.com/cormac-obrien/csc376-interview-portal.git
+
             
         # remove pass when code is done
         conn.close()
