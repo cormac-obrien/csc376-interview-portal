@@ -11,6 +11,8 @@ if __name__ == "__main__":
     from interview_portal_serverthread import ServerThread
     import logging
     import logging.config
+    import ssl
+
 
     logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
     logger = logging.getLogger(__name__)
@@ -23,6 +25,14 @@ if __name__ == "__main__":
     _PORT = args.port
     _HOST = 'localhost'
 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    ssl_socket = ssl.wrap_socket(s, keyfile ="", certfile="", ca_certs="", cert_reqs= ssl.CERT_REQUIRED)
+    #need to create a certificate for SSL
+    ssl.socket.connect((_HOST, _PORT))
+    ssl_socket.write("secure socket works!")
+    data = ssl_socket.read()
+    print (data)
+    ssl_socket.close()
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((_HOST, _PORT))
