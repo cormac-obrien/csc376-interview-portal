@@ -2,6 +2,7 @@ import sys
 import hashlib
 import getpass
 import sqlite3
+from passlib.hash import sha256_crypt
 
 class LoginAuthentication:
 
@@ -11,7 +12,10 @@ class LoginAuthentication:
 
         pass_try = 0
         x = 3
-        if user_input != password:
+        if user_input == password:
+            print('User is logged in!\n')
+            return
+        elif user_input != password:
             pass_try += 1
         while (pass_try < x):
             user_input = str(input("Password: "))
@@ -25,6 +29,18 @@ class LoginAuthentication:
             sys.exit('Incorrect Password, terminating... \n')
 
         print ('User is logged in!\n')
+
+
+    def pass_crypt(str):
+
+        hash_pass = sha256_crypt.encrypt(str)
+        return hash_pass
+
+    def pass_verify(str, db_pass):
+
+        varify_pass = sha256_crypt.verify(str, db_pass)
+        return varify_pass
+
 
     def passstore(self,password):
         def main(argv):

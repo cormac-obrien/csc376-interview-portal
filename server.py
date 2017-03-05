@@ -9,16 +9,19 @@ if __name__ == "__main__":
     import socket
     import ssl
     from serverthread import ServerThread
-
-    argc = len(sys.argv)
+#DG
+    _HOST = "localhost"
+    _PORT = 8001
+#DG
+    # argc = len(sys.argv)
     connection_id = 1
 
-    if (argc != 3):
-        _HOST = str(input("Enter HOST name: "))
-        _PORT = int(input("Enter PORT number: "))
-    else:
-        _HOST = str(sys.argv[1])
-        _PORT = int(sys.argv[2])
+    # if (argc != 3):
+    #     _HOST = str(input("Enter HOST name: "))
+    #     _PORT = int(input("Enter PORT number: "))
+    # else:
+    #     _HOST = str(sys.argv[1])
+    #     _PORT = int(sys.argv[2])
     
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

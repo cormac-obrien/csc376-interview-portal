@@ -6,7 +6,10 @@
 
 #from interview_error import CredentialsException
 from loginauth import LoginAuthentication
-
+#DG
+_HOST = "localhost"
+_PORT = 8001
+#DG
 def terminate_session():
     print('Terminating connection to server')
     for i in range(0,10):
@@ -467,14 +470,14 @@ if __name__ == "__main__":
     import socket
     import ssl
 
-    argc = len(sys.argv)
-
-    if (argc != 3):
-        _HOST = str(input("Enter HOST name: "))
-        _PORT = int(input("Enter PORT number: "))
-    else:
-        _HOST = str(sys.argv[1])
-        _PORT = int(sys.argv[2])
+    # argc = len(sys.argv)
+    #
+    # if (argc != 3):
+    #     _HOST = str(input("Enter HOST name: "))
+    #     _PORT = int(input("Enter PORT number: "))
+    # else:
+    #     _HOST = str(sys.argv[1])
+    #     _PORT = int(sys.argv[2])
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ssl_socket = ssl_connection(client_socket)
