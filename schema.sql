@@ -41,6 +41,7 @@ CREATE TABLE Questions
   question_id INTEGER UNIQUE NOT NULL,
   question_interview INTEGER NOT NULL,
   question_kind INTEGER NOT NULL,
+  question_text TEXT NOT NULL,
   CONSTRAINT pk_question_id PRIMARY KEY (question_id),
   CONSTRAINT fk_question_interview FOREIGN KEY (question_interview) REFERENCES Interviews (interview_id)
 );
