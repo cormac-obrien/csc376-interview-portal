@@ -1,6 +1,6 @@
 BEGIN TRANSACTION;
 
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
   user_id    INTEGER     UNIQUE NOT NULL,
   user_name  TEXT        UNIQUE NOT NULL,
   user_perms INTEGER     NOT NULL,
@@ -9,7 +9,8 @@ CREATE TABLE Users (
   CONSTRAINT fk_user_perms FOREIGN KEY (user_perms) REFERENCES UserPermissions (perms_id)
 );
 
-CREATE TABLE UserPermissions
+
+CREATE TABLE IF NOT EXISTS  UserPermissions
 (
   perms_id     INTEGER     UNIQUE NOT NULL,
   perms_alias  TEXT UNIQUE NOT NULL,
@@ -28,7 +29,7 @@ VALUES
   (2, 'staff',       0, 0, 1,  0, 1),
   (3, 'interviewee', 0, 0, 0, 1,  0);
 
-CREATE TABLE Interviews
+CREATE TABLE IF NOT EXISTS Interviews
 (
   interview_id INTEGER UNIQUE NOT NULL,
   interview_name TEXT NOT NULL,
@@ -36,7 +37,7 @@ CREATE TABLE Interviews
   CONSTRAINT pk_interview_id PRIMARY KEY (interview_id)
 );
 
-CREATE TABLE Questions
+CREATE TABLE IF NOT EXISTS Questions
 (
   question_id INTEGER UNIQUE NOT NULL,
   question_interview INTEGER NOT NULL,
@@ -45,7 +46,7 @@ CREATE TABLE Questions
   CONSTRAINT fk_question_interview FOREIGN KEY (question_interview) REFERENCES Interviews (interview_id)
 );
 
-CREATE TABLE QuestionKinds
+CREATE TABLE IF NOT EXISTS QuestionKinds
 (
   qkind_id INTEGER UNIQUE NOT NULL,
   qkind_name TEXT UNIQUE NOT NULL
@@ -57,7 +58,7 @@ VALUES
   (1, 'radio'),
   (2, 'check');
 
-CREATE TABLE PredefinedAnswers
+CREATE TABLE IF NOT EXISTS PredefinedAnswers
 (
   predef_id INTEGER UNIQUE NOT NULL,
   predef_question INTEGER NOT NULL,
@@ -67,7 +68,7 @@ CREATE TABLE PredefinedAnswers
   CONSTRAINT fk_predef_question FOREIGN KEY (predef_question) REFERENCES Questions (question_id)
 );
 
-CREATE TABLE Answers
+CREATE TABLE IF NOT EXISTS Answers
 (
   answer_id INTEGER UNIQUE NOT NULL,
   answer_user INTEGER NOT NULL,
@@ -78,4 +79,15 @@ CREATE TABLE Answers
   CONSTRAINT fk_answer_question FOREIGN KEY (answer_question) REFERENCES Questions (question_id)
 );
 
+--DG
+CREATE TABLE IF NOT EXISTS Login
+(
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+  	authkey TEXT NOT NULL,
+
+  	CONSTRAINT pk_username PRIMARY KEY (username),
+  	CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES Users(user_name)
+);
+--DG
 COMMIT TRANSACTION;

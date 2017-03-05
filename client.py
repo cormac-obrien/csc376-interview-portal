@@ -5,6 +5,7 @@
 # included in this distribution.
 
 #from interview_error import CredentialsException
+from loginauth import LoginAuthentication
 
 def terminate_session():
     print('Terminating connection to server')
@@ -492,14 +493,17 @@ if __name__ == "__main__":
     if (response == '2'):
     	new_USER_NAME = str(input("Enter Username: "))
     	ssl_socket.send((new_USER_NAME).encode())
-    	USER_AUTH     = str(input("Enter Authorization: "))
-    	ssl_socket.send((USER_AUTH).encode())
-
+    	USER_PW     = str(input("Enter Password: "))
+    	ssl_socket.send((USER_PW).encode())
+        #DG
     #Prompt For Password and Username
-    USER_NAME = str(input("Username: "))
-    ssl_socket.send((USER_NAME).encode())
-    USER_PW   = str(input("Password: "))
-    ssl_socket.send((USER_PW).encode())
+    # DG
+    if(response == '1'):
+        USER_NAME = str(input("Username: "))
+        ssl_socket.send((USER_NAME).encode())
+        USER_PW   =  str(input("Password: "))
+        LoginAuthentication.passcheck(USER_PW)
+        ssl_socket.send((USER_PW).encode())
 
     confirmation= str(ssl_socket.recv(1024).decode()) # confirms credentials
     print(confirmation)                             #print credentials

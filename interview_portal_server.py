@@ -8,7 +8,7 @@ if __name__ == "__main__":
     import socket
     import time
     from argparse import ArgumentParser
-    from interview_portal_serverthread import ServerThread
+    from serverthread import ServerThread
     import logging
     import logging.config
     import ssl
