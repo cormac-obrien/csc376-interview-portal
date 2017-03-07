@@ -24,13 +24,19 @@ def adminMenu(ssl_socket):
     print('(4) List users')
     print('(q) Log out and exit')
 
-    response = str(input(' > '))
-
+    correct_input = False
+    while(not correct_input):
+        response = str(input(' > '))
+        if(response != '1' and response != '2' and response != '3' and response != 'q'):
+            print('Error: Please enter a valid number corresponding to desired action.')
+        else:
+            correct_input = True
     ssl_socket.send((response).encode())
 
+    correct_input = False
     #confirmation = ssl_socket.recv(1024).decode()
     print(confirmation)
-    while True:
+    while(True):
         if response == '1':
             create_interview(ssl_socket)
             break
@@ -53,15 +59,20 @@ def intervieweeMenu(ssl_socket):
     print('(1) take interview')
     print('(q) Log out and exit')
 
-    response = str(input(' > '))
-
+    correct_input = False
+    while(not correct_input):
+        response = str(input(' > '))
+        if(response != '1' and response != '2' and response != '3' and response != 'q'):
+            print('Error: Please enter a valid number corresponding to desired action.')
+        else:
+            correct_input = True
     ssl_socket.send((response).encode())
 
-    confirmation = ssl_socket.recv(1024).decode()
+    #confirmation = ssl_socket.recv(1024).decode()
     print(confirmation)
     while True:
         if response == '1':
-            take_interview()
+            take_interview(ssl_socket)
             break
         elif response == 'q':
             break
@@ -77,21 +88,26 @@ def lawyerMenu(ssl_socket):
     print('(3) assign interview')
     print('(q) Log out and exit')
 
-    response = str(input(' > '))
-
+    correct_input = False
+    while(not correct_input):
+        response = str(input(' > '))
+        if(response != '1' and response != '2' and response != '3' and response != 'q'):
+            print('Error: Please enter a valid number corresponding to desired action.')
+        else:
+            correct_input = True
     ssl_socket.send((response).encode())
 
-    confirmation = ssl_socket.recv(1024).decode()
+    #confirmation = ssl_socket.recv(1024).decode()
     print(confirmation)
     while True:
         if response == '1':
             create_interview(ssl_socket)
             break
         elif response == '2':
-            reviewInterview()
+            reviewInterview(ssl_socket)
             break
         elif response == '3':
-            assignInterview()
+            assignInterview(ssl_socket)
             break
         else:
             sys.stdout.flush()
@@ -223,6 +239,7 @@ def create_interview(ssl_socket):
         # <PROTOCOL: retrieve interview from database and display full details?>
         
         # END create_interview: back to Lawyer Options
+        lawyerMenu(ssl_socket)
     
     # remove pass when code is complete
     #pass
@@ -543,7 +560,7 @@ if __name__ == '__main__':
     while(not correct_input):
         response = str(input('> '))
         if(response != '1' and response != '2' and response.upper() != 'L' and response.upper() != 'C'):
-            print('Please enter the number corresponding to desired action.')
+            print('Error: Please enter a valid number corresponding to desired action.')
         else:
             correct_input = True
     ssl_socket.send((response).encode())

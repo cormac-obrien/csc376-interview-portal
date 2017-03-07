@@ -8,6 +8,7 @@ import sys
 import threading
 import socket
 import sqlite3
+import db
 
 class ServerThread(threading.Thread):    
     def __init__(self, client_socket, connection_id):
@@ -59,7 +60,7 @@ class ServerThread(threading.Thread):
         desc = self.client_socket.recv(1024).decode()
         
         # create interview
-        create_interview(conn, name, desc)
+        db.create_interview(conn, name, desc)
         
         # TODO: retrieve interview identifier
         interview = 'UNDER CONSTRUCTION'
@@ -81,20 +82,20 @@ class ServerThread(threading.Thread):
                 verify = self.client_socket.recv(1024).decode()
                 
                 # Y: link question to interview (terminate loop)
-                if verify == 'Y':
+                if verify.upper() == 'Y':
                     
                     # add question to database
-                    add_question(conn, interview, question)
+                    db.add_question(conn, interview, question)
                     self.client_socket.send( ('Question saved.').encode() )
                     break
                 
                 # N: re-enter question (repeat loop)
-                elif verify == 'N':
+                elif verify.upper() == 'N':
                     continue
                 
                 # invalid (error msg)
                 else:
-                    self.client_socket.send( ('Invalid Input!  Please answer with Y or N').encode() )
+                    self.client_socket.send( ('Error: Please answer with Y or N').encode() )
                     
                     
             ## interview progression (interview creation loop control) ##
@@ -102,16 +103,16 @@ class ServerThread(threading.Thread):
             response = self.client_socket.recv(1024).decode()
             
             # N: submit interview to database (terminate loop)
-            if response == 'N':
+            if response.upper() == 'N':
                 # confirmation message
                 self.client_socket.send( ('Interview creation finished!').encode() )
                 break
             # Y: continue adding questions (repeat loop)
-            elif response == 'Y':
+            elif response.upper() == 'Y':
                 continue
             # invalid response (error msg)
             else:
-                self.client_socket.send( ('Invalid Response!').encode() )
+                self.client_socket.send( ('Error.').encode() )
         
         ## post-creation display ##
         
