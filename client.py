@@ -15,15 +15,16 @@ def terminate_session():
     print('Server socket closed')
     return
 
+# Menu for an admin user
 def adminMenu(ssl_socket):
-    print("What would you like to do?")
-    print("(1) create interview")
-    print("(2) review interview")
-    print("(3) assign interview")
-    print("(4) List users")
-    print("(q) Log out and exit")
+    print('What would you like to do?')
+    print('(1) create interview')
+    print('(2) review interview')
+    print('(3) assign interview')
+    print('(4) List users')
+    print('(q) Log out and exit')
 
-    response = str(input(" > "))
+    response = str(input(' > '))
 
     ssl_socket.send((response).encode())
 
@@ -31,13 +32,13 @@ def adminMenu(ssl_socket):
     print(confirmation)
     while True:
         if response == '1':
-            create_interview()
+            create_interview(ssl_socket)
             break
         elif response == '2':
-            review_interview()
+            review_interview(ssl_socket)
             break
         elif response == '3':
-            assign_interview()
+            assign_interview(ssl_socket)
             break
         elif response == '4':
             list_users()
@@ -46,8 +47,55 @@ def adminMenu(ssl_socket):
             sys.stdout.flush()
             return
 
+# Menu for an interviewee user
+def intervieweeMenu(ssl_socket):
+    print('What would you like to do?')
+    print('(1) take interview')
+    print('(q) Log out and exit')
 
+    response = str(input(' > '))
 
+    ssl_socket.send((response).encode())
+
+    confirmation = ssl_socket.recv(1024).decode()
+    print(confirmation)
+    while True:
+        if response == '1':
+            take_interview()
+            break
+        elif response == 'q':
+            break
+        else:
+            sys.stdout.flush()
+            return
+
+# Menu for a lawyer user
+def lawyerMenu(ssl_socket):
+    print('What would you like to do?')
+    print('(1) create interview')
+    print('(2) review interview')
+    print('(3) assign interview')
+    print('(q) Log out and exit')
+
+    response = str(input(' > '))
+
+    ssl_socket.send((response).encode())
+
+    confirmation = ssl_socket.recv(1024).decode()
+    print(confirmation)
+    while True:
+        if response == '1':
+            create_interview(ssl_socket)
+            break
+        elif response == '2':
+            reviewInterview()
+            break
+        elif response == '3':
+            assignInterview()
+            break
+        else:
+            sys.stdout.flush()
+            return
 
 # =========================================================================
 #             LAWYER: INTERVIEW CREATION   
@@ -66,7 +114,7 @@ def adminMenu(ssl_socket):
 # - SYNC: test/refine loop control
 # =========================================================================
 
-def create_interview():
+def create_interview(ssl_socket):
     
     # incoming intro message
     intro_msg = ssl_socket.recv(1024).decode()
@@ -177,7 +225,7 @@ def create_interview():
         # END create_interview: back to Lawyer Options
     
     # remove pass when code is complete
-    pass
+    #pass
        
 # ===========================================================================
 #             LAWYER: INTERVIEW ASSIGNMENT   
@@ -195,13 +243,13 @@ def create_interview():
 # - finalize interview assignment design (e.g. single or multiple assignment?)
 # =============================================================================
 
-def assign_interview():
+def assign_interview(ssl_socket):
 
     # Get name of Interviewee
     intro = ssl_socket.recv(1024).decode()
     print(intro)
-    print("Enter the name of the interviewe you wish to assign:")
-    user = str(input(" > "))
+    print('Enter the name of the interviewe you wish to assign:')
+    user = str(input(' > '))
 
     #Confirms that the interviewee exists
 
@@ -209,9 +257,9 @@ def assign_interview():
     user_conf = ssl_socket.recv(1024).decode()
 
     #if no existing user
-    while user_conf != "User exists":
+    while user_conf != 'User exists':
         print(user_conf)
-        user = str(input(" > "))
+        user = str(input(' > '))
         ssl_socket.send(( user ).encode())								#User_Search
         if user == 'quit':
             return
@@ -220,17 +268,17 @@ def assign_interview():
     print(user_conf)
 
     # Get name of Interview
-    print("Enter the name of the interviewe you wish to assign:")
-    interview = str(input(" > "))
+    print('Enter the name of the interviewe you wish to assign:')
+    interview = str(input(' > '))
 
     #Confirms that the interview exists
 
     ssl_socket.send(( interview ).encode())								#Interview_Search
     interview_conf = ssl_socket.recv(1024).decode()			
     #if no existing user
-    while interview_conf == "Interview does not exist, try again.":
+    while interview_conf == 'Interview does not exist, try again.':
         print(interview_conf)
-        interview = str(input(" > "))
+        interview = str(input(' > '))
         ssl_socket.send(( interview ).encode())							#Interview_Search
         if interview == 'quit':
             return
@@ -262,7 +310,7 @@ def review_submissions():
 # - ENCRYPTION: add redirect to main menu
 # - test/refine loop control
 # =============================================================================
-def manage_interviews():
+def manage_interviews(ssl_socket):
     
     ## MANAGE_INTERVIEWS LOOP ##
     while(True):
@@ -405,7 +453,7 @@ def manage_interviews():
 # - PROTOCOL: add database interactions
 # - SYNC: test/refine loop control
 # =============================================================================
-def take_interview():
+def take_interview(ssl_socket):
     
     # incoming intro message
     intro_msg = ssl_socket.recv(1024).decode()
@@ -451,9 +499,9 @@ def validate(loggedInAs):
 # won't work if not using 'localhost' unless you create a new certificate with new host address as the certificate's commonName
 def ssl_connection(client_socket):
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    context.load_verify_locations("cert.pem")
+    context.load_verify_locations('cert.pem')
     # wrap client_socket, uses RSA encryption, certificate required
-    ssl_socket = ssl.wrap_socket(client_socket, ciphers="RSA:!COMPLEMENTOFALL", ca_certs="cert.pem", cert_reqs=ssl.CERT_REQUIRED)
+    ssl_socket = ssl.wrap_socket(client_socket, ciphers='RSA:!COMPLEMENTOFALL', ca_certs='cert.pem', cert_reqs=ssl.CERT_REQUIRED)
     # make connection
     ssl_socket.connect((_HOST, _PORT))
     # verify certificate and do handshake
@@ -465,7 +513,7 @@ def ssl_connection(client_socket):
 # use:
 # openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout cert.pem
 # on the cmd line to generate new certificate (update ssl.match_hostname() parameter)
-if __name__ == "__main__":
+if __name__ == '__main__':
     import sys
     import socket
     import ssl
@@ -473,8 +521,8 @@ if __name__ == "__main__":
     argc = len(sys.argv)
 
     if (argc != 3):
-        _HOST = str(input("Enter HOST name: "))
-        _PORT = int(input("Enter PORT number: "))
+        _HOST = str(input('Enter HOST name: '))
+        _PORT = int(input('Enter PORT number: '))
     else:
         _HOST = str(sys.argv[1])
         _PORT = int(sys.argv[2])
@@ -488,21 +536,27 @@ if __name__ == "__main__":
     print(greeting_msg)
 
     #Ask user to login or create new account
-    print("(1) Login.")
-    print("(2) Create New User.")
-    response = str(input("> "))
-    ssl_socket.send((response).encode())
+    print('(1) Login.')
+    print('(2) Create New User.')
 
+    correct_input = False
+    while(not correct_input):
+        response = str(input('> '))
+        if(response != '1' and response != '2' and response.upper() != 'L' and response.upper() != 'C'):
+            print('Please enter the number corresponding to desired action.')
+        else:
+            correct_input = True
+    ssl_socket.send((response).encode())
     if (response == '2'):
-    	new_USER_NAME = str(input("Enter Username: "))
+    	new_USER_NAME = str(input('Enter Username: '))
     	ssl_socket.send((new_USER_NAME).encode())
-    	USER_AUTH     = str(input("Enter Authorization: "))
+    	USER_AUTH     = str(input('Enter Authorization: '))
     	ssl_socket.send((USER_AUTH).encode())
 
     #Prompt For Password and Username
-    USER_NAME = str(input("Username: "))
+    USER_NAME = str(input('Username: '))
     ssl_socket.send((USER_NAME).encode())
-    USER_PW   = str(input("Password: "))
+    USER_PW   = str(input('Password: '))
     ssl_socket.send((USER_PW).encode())
 
     confirmation= str(ssl_socket.recv(1024).decode()) # confirms credentials
@@ -515,15 +569,14 @@ if __name__ == "__main__":
         sys.exit()
         
     if cred == 1:
-        print("interviewee")
-        #take interview
+        print('interviewee')
+        intervieweeMenu(ssl_socket)
     elif cred == 2:
-        print("lawyer")
-        adminMenu(ssl_socket)
-        #admin_interface
+        print('lawyer')
+        lawyerMenu(ssl_socket)
     elif cred == 3:
-        print("other?")
-        #review_answers
+        print('admin')
+        adminMenu(ssl_socket)
 
     terminate_session()
-    print("Logging Out...")
+    print('Logging Out...')
