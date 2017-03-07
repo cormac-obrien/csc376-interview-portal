@@ -1,9 +1,10 @@
 BEGIN TRANSACTION;
 
 CREATE TABLE Users (
-  user_id    INTEGER     UNIQUE NOT NULL,
-  user_name  TEXT        UNIQUE NOT NULL,
-  user_perms INTEGER     NOT NULL,
+  user_id       INTEGER     UNIQUE NOT NULL,
+  user_name     TEXT        UNIQUE NOT NULL,
+  user_password TEXT        NOT NULL,
+  user_perms    INTEGER     NOT NULL,
 
   CONSTRAINT pk_user_id PRIMARY KEY (user_id),
   CONSTRAINT fk_user_perms FOREIGN KEY (user_perms) REFERENCES UserPermissions (perms_id)
@@ -40,39 +41,17 @@ CREATE TABLE Questions
 (
   question_id INTEGER UNIQUE NOT NULL,
   question_interview INTEGER NOT NULL,
-  question_kind INTEGER NOT NULL,
   question_text TEXT NOT NULL,
   CONSTRAINT pk_question_id PRIMARY KEY (question_id),
   CONSTRAINT fk_question_interview FOREIGN KEY (question_interview) REFERENCES Interviews (interview_id)
 );
 
-CREATE TABLE QuestionKinds
-(
-  qkind_id INTEGER UNIQUE NOT NULL,
-  qkind_name TEXT UNIQUE NOT NULL
-);
-
-INSERT INTO QuestionKinds (qkind_id, qkind_name)
-VALUES
-  (0, 'text'),
-  (1, 'radio'),
-  (2, 'check');
-
-CREATE TABLE PredefinedAnswers
-(
-  predef_id INTEGER UNIQUE NOT NULL,
-  predef_question INTEGER NOT NULL,
-  predef_text TEXT NOT NULL,
-
-  CONSTRAINT pk_predef_id PRIMARY KEY (predef_id),
-  CONSTRAINT fk_predef_question FOREIGN KEY (predef_question) REFERENCES Questions (question_id)
-);
-
 CREATE TABLE Answers
 (
-  answer_id INTEGER UNIQUE NOT NULL,
-  answer_user INTEGER NOT NULL,
+  answer_id       INTEGER UNIQUE NOT NULL,
+  answer_user     INTEGER NOT NULL,
   answer_question INTEGER NOT NULL,
+  answer_text     TEXT NOT NULL,
 
   CONSTRAINT pk_answer_id PRIMARY KEY (answer_id),
   CONSTRAINT fk_answer_user FOREIGN KEY (answer_user) REFERENCES Users (user_id),
