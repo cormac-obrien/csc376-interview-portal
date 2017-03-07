@@ -27,32 +27,25 @@ def adminMenu(ssl_socket):
 
     ssl_socket.send((response).encode())
 
-    confirmation = ssl_socket.recv(1024).decode()
+    #confirmation = ssl_socket.recv(1024).decode()
     print(confirmation)
     while True:
         if response == '1':
-            createInterview()
+            create_interview()
             break
         elif response == '2':
-            reviewInterview()
+            review_interview()
             break
         elif response == '3':
-            assignInterview()
+            assign_interview()
             break
         elif response == '4':
-            listUsers()
+            list_users()
             break
         else:
-            #print()
-            #terminate_session()
-            #if (len(response) != 0): print(response)
             sys.stdout.flush()
             return
-            #answer_string = str(input(" > "))
-            #answer_string = enc.encrypt(answer_string)
-            #ssl_socket.send(answer_string)
-            #response = ssl_socket.recv(1024)
-            #response = enc.decrypt(response)
+
 
 
 
@@ -76,18 +69,18 @@ def adminMenu(ssl_socket):
 def create_interview():
     
     # incoming intro message
-    intro_msg = client_socket.recv(1024)
+    intro_msg = ssl_socket.recv(1024).decode()
     if(len(intro_msg) != 0):
         print(intro_msg)
     
     # incoming name entry request
-    name_msg = client_socket.recv(1024)
+    name_msg = ssl_socket.recv(1024).decode()
     if(len(name_msg) != 0):
         print(name_msg)
     
     # outgoing name submission
     name_entry = str(input(' > '))
-    client_socket.send(name_entry)
+    ssl_socket.send(name_entry.encode() )
     
     ## INTERVIEW CREATION LOOP ##
     while(True):
@@ -96,34 +89,34 @@ def create_interview():
         while(True):
             
             # incoming question entry request
-            question_msg = client_socket.recv(1024)
+            question_msg = ssl_socket.recv(1024).decode()
             if(len(question_msg) != 0):
                 print(question_msg)
             
             # outgoing question submission (String)
             question_entry = str(input(' > '))
-            client_socket.send(question_entry)
+            ssl_socket.send(question_entry.encode() )
             
             # incoming question echo
-            echo = client_socket.recv(1024)
+            echo = ssl_socket.recv(1024).decode()
             if(len(echo) != 0):
                 print(echo)
             
             # incoming verify request
-            verify_msg = client_socket.recv(1024)
+            verify_msg = ssl_socket.recv(1024).decode()
             if(len(verify_msg) != 0):
                 print(verify_msg)
             
             # outgoing verification (String) Y/N
             verify_entry = str(input(' > ')) 
-            client_socket.send(verify_entry)
+            ssl_socket.send(verify_entry.encode() )
             
             ## INNER LOOP CONTROL ##
             # Y: save question (terminate loop)
             if verify_entry == 'Y':
                 
                 # incoming confirmation message
-                confirm_msg = client_socket.recv(1024)
+                confirm_msg = ssl_socket.recv(1024).decode()
                 if(len(confirm_msg) != 0):
                     print(confirm_msg)
                 break
@@ -134,26 +127,26 @@ def create_interview():
             
             # invalid response
             else:
-                invalid_resp = client_socket.recv(1024)
+                invalid_resp = ssl_socket.recv(1024).decode()
                 if(len(invalid_resp) != 0):
                     print(invalid_resp)    
         
         ## OUTER LOOP CONTROL ##
         
         # incoming request for more questions
-        add_msg = client_socket.recv(1024)
+        add_msg = ssl_socket.recv(1024).decode()
         if(len(add_msg) != 0):
             print(add_msg)
         
         # outgoing response (String) Y/N
         add_resp = input(str(' > '))
-        client_socket.send(add_resp)
+        ssl_socket.send(add_resp.encode() )
         
         # N: add new interview to database (terminate loop)
         if add_resp == 'N':
             
             # incoming confirmation message
-            db_msg = client_socket.recv(1024)
+            db_msg = ssl_socket.recv(1024).decode()
             if(len(db_msg) != 0):
                 print(db_msg)
             break
@@ -164,7 +157,7 @@ def create_interview():
         
         # invalid response
         else:
-            invalid_resp = client_socket.recv(1024)
+            invalid_resp = ssl_socket.recv(1024).decode()
             if(len(invalid_resp) != 0):
                 print(invalid_resp)    
         
@@ -193,51 +186,53 @@ def create_interview():
 # - finalize interview assignment design (e.g. single or multiple assignment?)
 # =============================================================================
 
-def assignInterview():
+def assign_interview():
 
-	# Get name of Interviewee
-	print("Enter the username of the interviewee:")
-	user = str(input(" > "))
+    # Get name of Interviewee
+    intro = ssl_socket.recv(1024).decode()
+    print(intro)
+    print("Enter the name of the interviewe you wish to assign:")
+    user = str(input(" > "))
 
-	#Confirms that the interviewee exists
+    #Confirms that the interviewee exists
 
-	ssl_socket.send(( user ).encode()) 									#User_Search
-	user_conf = ssl_socket.recv(1024).decode()
+    ssl_socket.send(( user ).encode()) 									#User_Search
+    user_conf = ssl_socket.recv(1024).decode()
 
-	#if no existing user
-	while user_conf != "User exists":
-		print(user_conf)
-		user = str(input(" > "))
-		ssl_socket.send(( user ).encode())								#User_Search
-		if user == 'quit':
-			return
-		user_conf = ssl_socket.recv(1024).decode()
-		
-	print(user_conf)
+    #if no existing user
+    while user_conf != "User exists":
+        print(user_conf)
+        user = str(input(" > "))
+        ssl_socket.send(( user ).encode())								#User_Search
+        if user == 'quit':
+            return
+        user_conf = ssl_socket.recv(1024).decode()
 
-	# Get name of Interview
-	print("Enter the name of the interviewe you wish to assign:")
-	interview = str(input(" > "))
+    print(user_conf)
 
-	#Confirms that the interview exists
+    # Get name of Interview
+    print("Enter the name of the interviewe you wish to assign:")
+    interview = str(input(" > "))
 
-	ssl_socket.send(( interview ).encode())								#Interview_Search
-	interview_conf = ssl_socket.recv(1024).decode()			
-	#if no existing user
-	while interview_conf == "Interview does not exist, try again.":
-		print(interview_conf)
-		interview = str(input(" > "))
-		ssl_socket.send(( interview ).encode())							#Interview_Search
-		if interview == 'quit':
-			return
-		interview_conf = ssl_socket.recv(1024).decode()
+    #Confirms that the interview exists
 
-	print(interview_conf)	# Assigning Interview
-	interview_conf = ssl_socket.recv(1024).decode() #
-	print(interview_conf)	# INTERVIEW has been assigned to USER
+    ssl_socket.send(( interview ).encode())								#Interview_Search
+    interview_conf = ssl_socket.recv(1024).decode()			
+    #if no existing user
+    while interview_conf == "Interview does not exist, try again.":
+        print(interview_conf)
+        interview = str(input(" > "))
+        ssl_socket.send(( interview ).encode())							#Interview_Search
+        if interview == 'quit':
+            return
+        interview_conf = ssl_socket.recv(1024).decode()
+
+    print(interview_conf)	# Assigning Interview
+    interview_conf = ssl_socket.recv(1024).decode() #
+    print(interview_conf)	# INTERVIEW has been assigned to USER
 
 
-	pass
+    pass
     
 def review_submissions():
     pass
@@ -266,10 +261,10 @@ def manage_interviews():
         ## options display ##
     
         # incoming option messages
-        option_msg = client_socket.recv(1024)
-        option_e = client_socket.recv(1024)
-        option_d = client_socket.recv(1024)
-        option_q = client_socket.recv(1024)
+        option_msg = ssl_socket.recv(1024).decode()
+        option_e = ssl_socket.recv(1024).decode()
+        option_d = ssl_socket.recv(1024).decode()
+        option_q = ssl_socket.recv(1024).decode()
         
         if(option_msg != 0 and
            option_e   != 0 and
@@ -284,13 +279,13 @@ def manage_interviews():
             
         # outgoing option response
         option_resp = str(input(' > '))
-        client_socket.send(option_resp)
+        ssl_socket.send(option_resp.encode() )
         
         # E: edit/view created interviews
         if option_resp == 'E':
             
             # incoming edit/view intro message
-            edit_msg = client_socket.recv(1024)
+            edit_msg = ssl_socket.recv(1024).decode()
             if(len(edit_msg) != 0):
                 print(edit_msg)
                 
@@ -298,13 +293,13 @@ def manage_interviews():
             # display <none> if none exist
             
             # incoming interview selection message
-            select_msg = client_socket.recv(1024)
+            select_msg = ssl_socket.recv(1024).decode()
             if(len(select_msg) != 0):
                 print(select_msg)
                 
             # outgoing interview selection entry
             select_entry = str(input(' > '))
-            client_socket.send(select_entry)
+            ssl_socket.send( select_entry.encode() )
             
             # <PROTOCOL: 
             #    - retrieve interview based on criteria
@@ -313,7 +308,7 @@ def manage_interviews():
             #    - ask for question edit; if yes, make database changes>
             
             # incoming confirmation message
-            confirm_msg = client_socket.recv(1024)
+            confirm_msg = ssl_socket.recv(1024).decode()
             if(len(confirm_msg) != 0):
                 print(confirm_msg)
         
@@ -324,7 +319,7 @@ def manage_interviews():
             while(True):
                 
                 # incoming delete intro message
-                delete_msg = client_socket.recv(1024)
+                delete_msg = ssl_socket.recv(1024).decode()
                 if(len(delete_msg) != 0):
                     print(delete_msg)
                     
@@ -332,30 +327,30 @@ def manage_interviews():
                 # display <none> if none exist
                 
                 # incoming interview selection message
-                select_msg = client_socket.recv(1024)
+                select_msg = ssl_socket.recv(1024).decode()
                 if(len(select_msg) != 0):
                     print(select_msg)
                 
                 # outgoing interview selection entry
                 select_entry = str(input(' > '))
-                client_socket.send(select_entry)
+                ssl_socket.send(select_entry.encode() )
                 
                 ## LOOP CONTROL ##
                 
                 # incoming verify request
-                verify_msg = client_socket.recv(1024)
+                verify_msg = ssl_socket.recv(1024).decode()
                 if(len(verify_msg) != 0):
                     print(verify_msg)
             
                 # outgoing verification (String) Y/N
                 verify_entry = str(input(' > ')) 
-                client_socket.send(verify_entry)
+                ssl_socket.send(verify_entry.encode() )
                 
                 # Y: confirm selection
                 if verify_entry == 'Y':
                     
                     # incoming confirmation message
-                    confirm_msg = client_socket.recv(1024)
+                    confirm_msg = ssl_socket.recv(1024).decode()
                     if(len(confirm_msg) != 0):
                         print(confirm_msg)
                     break
@@ -367,7 +362,7 @@ def manage_interviews():
                 # invalid response
                 else:
                     
-                    invalid_resp = client_socket.recv(1024)
+                    invalid_resp = ssl_socket.recv(1024).decode()
                     if(len(invalid_resp) != 0):
                         print(invalid_resp)    
                 
@@ -379,7 +374,7 @@ def manage_interviews():
         # invalid response
         else:
             
-            invalid_resp = client_socket.recv(1024)
+            invalid_resp = ssl_socket.recv(1024).decode()
             if(len(invalid_resp) != 0):
                 print(invalid_resp)    
         
@@ -404,7 +399,7 @@ def manage_interviews():
 def take_interview():
     
     # incoming intro message
-    intro_msg = client_socket.recv(1024)
+    intro_msg = ssl_socket.recv(1024).decode()
     if(len(intro_msg) != 0):
         print(intro_msg)
         
@@ -413,13 +408,13 @@ def take_interview():
     # display <none> if none exist
     
     # incoming interview selection request
-    select_msg = client_socket.recv(1024)
+    select_msg = ssl_socket.recv(1024).decode()
     if(len(select_msg) != 0):
         print(select_msg)
     
     # outgoing interview selection entry
     select_entry = input(str(' > '))
-    client_socket.send(select_entry)
+    ssl_socket.send(select_entry.encode() )
     
     # <PROTOCOL: 
     #    - retrieve interview based on criteria
@@ -428,7 +423,7 @@ def take_interview():
     #    - add interview to review list>
     
     # incoming confirmation message
-    confirm_msg = client_socket.recv(1024)
+    confirm_msg = ssl_socket.recv(1024).decode()
     if(len(confirm_msg) != 0):
         print(confirm_msg)
         
@@ -480,7 +475,7 @@ if __name__ == "__main__":
 
     #Server greets client
     greeting_msg = ssl_socket.recv(1024)
-    greeting_msg = (greeting_msg).decode()
+    #greeting_msg = (greeting_msg).decode()
     print(greeting_msg)
 
     #Ask user to login or create new account

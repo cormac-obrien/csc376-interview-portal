@@ -49,7 +49,7 @@ class ServerThread(threading.Thread):
         
         # interview name entry
         self.client_socket.send( ('Enter a name for the interview').encode() )
-        name = self.client_socket.recv(1024)
+        name = self.client_socket.recv(1024).decode()
         
         # <PROTOCOL: name recorded to String variable?>
         
@@ -61,13 +61,13 @@ class ServerThread(threading.Thread):
                 
                 # question entry
                 self.client_socket.send( ('Enter a question').encode() )
-                echo = self.clent_socket.recv(1024)
+                echo = self.client_socket.recv(1024).decode()
                 # echo entry
-                self.client_socket.send('You entered:' + echo)
+                self.client_socket.send( ('You entered:' + echo).encode() )
                                 
                 # question verification (verification loop control)
                 self.client_socket.send( ('Add this question to the interview? Y/N').encode() )
-                verify = self.client_socket.recv(1024)
+                verify = self.client_socket.recv(1024).decode()
                 
                 # Y: link question to interview (terminate loop)
                 if verify == 'Y':
@@ -84,7 +84,7 @@ class ServerThread(threading.Thread):
                     
             ## interview progression (interview creation loop control) ##
             self.client_socket.send( ('Would you like to add another question? Y/N').encode() )
-            response = self.client_socket.recv(1024)
+            response = self.client_socket.recv(1024).decode()
             
             # N: submit interview to database (terminate loop)
             if response == 'N':
@@ -205,11 +205,11 @@ class ServerThread(threading.Thread):
         # interview retrieval
         # < search criteria? name, id? >
         self.client_socket.send( ('').encode() )
-        self.client_socket.recv(1024)
+        self.client_socket.recv(1024).decode()
         
         # < retrieve interview from database >
         # < send ID details >
-        self.client_socket.send( ().encode() )
+        self.client_socket.send( ('').encode() )
         
         # < INTERVIEW QUESTIONS LOOP >
         
@@ -241,7 +241,7 @@ class ServerThread(threading.Thread):
             self.client_socket.send( ('E: Edit/View an interview').encode() )
             self.client_socket.send( ('D: Delete an interview').encode() )
             self.client_socket.send( ('Q: Back to Lawyer Options').encode() )
-            option = self.client_socket.recv(1024)
+            option = self.client_socket.recv(1024).decode()
             
             conn = splite3.connect('interview.db') #temporary database
 
@@ -364,7 +364,7 @@ class ServerThread(threading.Thread):
             
         # interview selection <PROTOCOL: search by sequence number?>
         self.client_socket.send( ('Select an interview to take').encode() )
-        interview_sel = self.client_socket.recv(1024)
+        interview_sel = self.client_socket.recv(1024).decode()
         
         # <PROTOCOL: 
         #    - retrieve interview based on criteria
