@@ -82,6 +82,15 @@ def create_interview():
     name_entry = str(input(' > '))
     ssl_socket.send(name_entry.encode() )
     
+    # incoming description entry request
+    desc_msg = ssl_socket.recv(1024).decode()
+    if(len(desc_msg) != 0):
+        print(desc_msg)
+    
+    # outgoing description submission
+    desc_entry = str(input(' > '))
+    ssl_socket.send(desc_entry.encode() )
+    
     ## INTERVIEW CREATION LOOP ##
     while(True):
         

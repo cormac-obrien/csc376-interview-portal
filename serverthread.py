@@ -27,7 +27,8 @@ class ServerThread(threading.Thread):
       
     # =========================================================================
     #             LAWYER: INTERVIEW CREATION   
-    # Status: Incomplete (skeleton finished)
+    #
+    # Status: needs testing and refinement
     # 
     # Precondition: 
     # - Lawyer/Staff access
@@ -46,12 +47,22 @@ class ServerThread(threading.Thread):
         
         # interview creation intro
         self.client_socket.send( ('Interview Creation').encode() )
+        # db connection
+        conn = sqlite3.connect( 'interview.db' )
         
         # interview name entry
         self.client_socket.send( ('Enter a name for the interview').encode() )
         name = self.client_socket.recv(1024).decode()
         
-        # <PROTOCOL: name recorded to String variable?>
+        # interview description entry
+        self.client_socket.send( ('Enter a description for the interview').encode() )
+        desc = self.client_socket.recv(1024).decode()
+        
+        # create interview
+        create_interview(conn, name, desc)
+        
+        # TODO: retrieve interview identifier
+        interview = 'UNDER CONSTRUCTION'
         
         ## INTERVIEW CREATION LOOP ##
         while(True):
@@ -61,9 +72,9 @@ class ServerThread(threading.Thread):
                 
                 # question entry
                 self.client_socket.send( ('Enter a question').encode() )
-                echo = self.client_socket.recv(1024).decode()
+                question = self.client_socket.recv(1024).decode()
                 # echo entry
-                self.client_socket.send( ('You entered:' + echo).encode() )
+                self.client_socket.send( ('You entered:' + question).encode() )
                                 
                 # question verification (verification loop control)
                 self.client_socket.send( ('Add this question to the interview? Y/N').encode() )
@@ -71,12 +82,16 @@ class ServerThread(threading.Thread):
                 
                 # Y: link question to interview (terminate loop)
                 if verify == 'Y':
-                    # <PROTOCOL: add question to list variable?>
+                    
+                    # add question to database
+                    add_question(conn, interview, question)
                     self.client_socket.send( ('Question saved.').encode() )
                     break
+                
                 # N: re-enter question (repeat loop)
                 elif verify == 'N':
                     continue
+                
                 # invalid (error msg)
                 else:
                     self.client_socket.send( ('Invalid Input!  Please answer with Y or N').encode() )
@@ -88,8 +103,8 @@ class ServerThread(threading.Thread):
             
             # N: submit interview to database (terminate loop)
             if response == 'N':
-                # <PROTOCOL: interview name and questions added to database >
-                self.client_socket.send( ('<INTERVIEW NAME> added to database.').encode() )
+                # confirmation message
+                self.client_socket.send( ('Interview creation finished!').encode() )
                 break
             # Y: continue adding questions (repeat loop)
             elif response == 'Y':
@@ -100,8 +115,9 @@ class ServerThread(threading.Thread):
         
         ## post-creation display ##
         
-        # <PROTOCOL: retrieve interview from database and display full details?>
+        # TODO: retrieve and display name and description
         
+        # TODO: retrieve and display questions
                 
         # END create_interview: go back to Lawyer Options
         
