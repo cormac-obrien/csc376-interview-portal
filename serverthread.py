@@ -9,6 +9,7 @@ import threading
 import socket
 import sqlite3
 import db
+import random
 
 class ServerThread(threading.Thread):    
     def __init__(self, client_socket, connection_id):
@@ -58,45 +59,53 @@ class ServerThread(threading.Thread):
         # interview description entry
         self.client_socket.send( ('Enter a description for the interview').encode() )
         desc = self.client_socket.recv(1024).decode()
-        
+
+        # generates a pseudorandom, unique ID for this INTERVIEW
+        unique = False
+        while(not unique):
+            interview_id = random.randrange(1, 99999)
+            if(interview_id not in conn.execute('SELECT interview_id FROM Interviews')):
+                unique = True
+
         # create interview
-        db.create_interview(conn, name, desc)
-        
-        # TODO: retrieve interview identifier
-        interview = 'UNDER CONSTRUCTION'
-        
+        db.create_interview(conn, interview_id, name, desc)
+
         ## INTERVIEW CREATION LOOP ##
         while(True):
+
+            # generates a pseudorandom, unique ID for this QUESTION
+            unique = False
+            while(not unique):
+                question_id = random.randrange(1, 99999)
+                if(question_id not in conn.execute('SELECT question_id FROM Questions')):
+                    unique = True            
             
-            ## verification loop ##
-            while(True):            
-                
-                # question entry
-                self.client_socket.send( ('Enter a question').encode() )
-                question = self.client_socket.recv(1024).decode()
-                # echo entry
-                self.client_socket.send( ('You entered:' + question).encode() )
-                                
-                # question verification (verification loop control)
-                self.client_socket.send( ('Add this question to the interview? Y/N').encode() )
-                verify = self.client_socket.recv(1024).decode()
-                
-                # Y: link question to interview (terminate loop)
-                if verify.upper() == 'Y':
-                    
-                    # add question to database
-                    db.add_question(conn, interview, question)
-                    self.client_socket.send( ('Question saved.').encode() )
-                    break
-                
-                # N: re-enter question (repeat loop)
-                elif verify.upper() == 'N':
-                    continue
-                
-                # invalid (error msg)
-                else:
-                    self.client_socket.send( ('Error: Please answer with Y or N').encode() )
-                    
+            # question entry
+            self.client_socket.send( ('Enter a question').encode() )
+            question = self.client_socket.recv(1024).decode()
+            # echo entry
+            self.client_socket.send( ('You entered:' + question).encode() )
+                            
+            # question verification (verification loop control)
+            self.client_socket.send( ('Add this question to the interview? Y/N').encode() )
+            verify = self.client_socket.recv(1024).decode()
+            
+            # Y: link question to interview (terminate loop)
+            if verify.upper() == 'Y':
+
+                # add question to database
+                db.add_question(conn, question_id, interview_id, question)
+                self.client_socket.send( ('Question saved! ID:').encode() )
+                self.client_socket.send( str(question_id).encode() )
+                print('Question ID:', question_id)
+            
+            # N: re-enter question (repeat loop)
+            elif verify.upper() == 'N':
+                continue
+
+            # invalid (error msg)
+            else:
+                self.client_socket.send( ('Error: Please answer with Y or N').encode() )
                     
             ## interview progression (interview creation loop control) ##
             self.client_socket.send( ('Would you like to add another question? Y/N').encode() )
@@ -105,7 +114,9 @@ class ServerThread(threading.Thread):
             # N: submit interview to database (terminate loop)
             if response.upper() == 'N':
                 # confirmation message
-                self.client_socket.send( ('Interview creation finished!').encode() )
+                self.client_socket.send( ('Interview creation finished! ID:').encode() )
+                self.client_socket.send( str(interview_id).encode() )
+                print('Interview ID:', interview_id)
                 break
             # Y: continue adding questions (repeat loop)
             elif response.upper() == 'Y':
@@ -123,7 +134,7 @@ class ServerThread(threading.Thread):
         # END create_interview: go back to Lawyer Options
         
         # remove pass when code is complete
-        pass
+        #pass
     
     # ===========================================================================
     #             LAWYER: INTERVIEW ASSIGNMENT   
@@ -396,7 +407,6 @@ class ServerThread(threading.Thread):
         # remove pass when code is done
         pass
     
-
     def run(self):
     #greet and request username and password
         self.client_socket.send( ('Welcome to the Interview Portal').encode() )
@@ -432,7 +442,6 @@ class ServerThread(threading.Thread):
 
         _LOGIN_STATUS = (User_Row != None)
 
-       
         if _LOGIN_STATUS == True:
             self.client_socket.send( ('2').encode() )
             response = str(self.client_socket.recv(1024).decode())

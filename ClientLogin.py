@@ -33,19 +33,19 @@ def terminate_session():
 
 # Menu for an admin user
 def menu(ssl_socket):
-    print("Welcome")
-	print("Choos one of the following")
-	print("Type (1) to login")
-	print("Type (2) to Register")
-	print("Type (3) to login as Admin")
-	print("Type (4) to login as Lawyer")
+    print('Welcome')
+	print('Choose one of the following')
+	print('Type (1) to login')
+	print('Type (2) to Register')
+	print('Type (3) to login as Admin')
+	print('Type (4) to login as Lawyer')
 	print('Type (q) to exit')
 
     correct_input = False
     while(not correct_input):
         response = str(input(' > '))
         if(response != '1' and response != '2' and response != '3' and response != 'q'):
-            print('Error: Please enter a valid number corresponding to desired action.')
+            print('Error: Please enter a valid response corresponding to desired action.')
         else:
             correct_input = True
     ssl_socket.send((response).encode())
@@ -71,59 +71,59 @@ def menu(ssl_socket):
             return
 			
 def user_login(ssl_socket):
-	Print("Login ")
-	user = input("Enter your username")
-	psw = input ("Enetr your password")
+	Print('Login ')
+	user = input('Enter your username')
+	psw = input ('Enetr your password')
 	
 	if login(user,pswd)==False:
-		print("username and password combination is incorrect")
+		print('username and password combination is incorrect')
 		user_login(ssl_socket)
 	else:
-		print("Username and password are correct")
-		print("redirecting to another page")
+		print('Username and password are correct')
+		print('redirecting to another page')
 		intervieweeMenu(ssl_socket)
 	
 def user_register(ssl_socket):
-Print("Register")
-	name = input("Enter your name")
-	user = input("Enter your username")
-	psw = input ("Enetr your password")
+Print('Register')
+	name = input('Enter your name')
+	user = input('Enter your username')
+	psw = input ('Enetr your password')
 	authkey = 'Something'
 	
 	if register==False:
-	print("username and password are taken")
-	print("Choose another username and password")
+	print('username and password are taken')
+	print('Choose another username and password')
 		user_login(ssl_socket)
 	else:
-	print("Name, Username and password have been recorded")
-	print("redirecting to another page")
+	print('Name, Username and password have been recorded')
+	print('redirecting to another page')
 	intervieweeMenu(ssl_socket)
 	
 	
 def admin_login(ssl_socket):
-Print(" Admin Login ")
-	user = input("Enter your username")
-	psw = input ("Enetr your password")
+Print(' Admin Login ')
+	user = input('Enter your username')
+	psw = input ('Enetr your password')
 	
 	if login(user,pswd)==False:
-		print("username and password combination is incorrect")
+		print('username and password combination is incorrect')
 		admin_login(ssl_socket)
 	else:
-		print("Username and password are correct")
-		print("redirecting to another page")
+		print('Username and password are correct')
+		print('redirecting to another page')
 		adminMenu(ssl_socket)
 		
 def lawyer_login(ssl_socket):
-Print(" Lawyer Login ")
-	user = input("Enter your username")
-	psw = input ("Enetr your password")
+Print(' Lawyer Login ')
+	user = input('Enter your username')
+	psw = input ('Enetr your password')
 	
 	if login(user,pswd)==False:
-		print("username and password combination is incorrect")
+		print('username and password combination is incorrect')
 		lawyer_login(ssl_socket)
 	else:
-		print("Username and password are correct")
-		print("redirecting to another page")
+		print('Username and password are correct')
+		print('redirecting to another page')
 		lawyerMenu(ssl_socket)
 	
 	

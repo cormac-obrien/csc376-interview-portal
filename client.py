@@ -27,8 +27,8 @@ def adminMenu(ssl_socket):
     correct_input = False
     while(not correct_input):
         response = str(input(' > '))
-        if(response != '1' and response != '2' and response != '3' and response != 'q'):
-            print('Error: Please enter a valid number corresponding to desired action.')
+        if(response != '1' and response != '2' and response != '3' and response.upper() != 'Q'):
+            print('Error: Please enter a valid response corresponding to desired action.')
         else:
             correct_input = True
     ssl_socket.send((response).encode())
@@ -37,17 +37,21 @@ def adminMenu(ssl_socket):
     #confirmation = ssl_socket.recv(1024).decode()
     print(confirmation)
     while(True):
+        # admin credential identifier = 3
+        cred = 3
         if response == '1':
-            create_interview(ssl_socket)
+            create_interview(ssl_socket, cred)
             break
         elif response == '2':
-            review_interview(ssl_socket)
+            review_interview(ssl_socket, cred)
             break
         elif response == '3':
-            assign_interview(ssl_socket)
+            assign_interview(ssl_socket, cred)
             break
         elif response == '4':
             list_users()
+            break
+        elif response.upper() == 'Q':
             break
         else:
             sys.stdout.flush()
@@ -62,8 +66,8 @@ def intervieweeMenu(ssl_socket):
     correct_input = False
     while(not correct_input):
         response = str(input(' > '))
-        if(response != '1' and response != '2' and response != '3' and response != 'q'):
-            print('Error: Please enter a valid number corresponding to desired action.')
+        if(response != '1' and response != '2' and response != '3' and response.upper() != 'Q'):
+            print('Error: Please enter a valid response corresponding to desired action.')
         else:
             correct_input = True
     ssl_socket.send((response).encode())
@@ -74,7 +78,7 @@ def intervieweeMenu(ssl_socket):
         if response == '1':
             take_interview(ssl_socket)
             break
-        elif response == 'q':
+        elif response.upper() == 'Q':
             break
         else:
             sys.stdout.flush()
@@ -91,8 +95,8 @@ def lawyerMenu(ssl_socket):
     correct_input = False
     while(not correct_input):
         response = str(input(' > '))
-        if(response != '1' and response != '2' and response != '3' and response != 'q'):
-            print('Error: Please enter a valid number corresponding to desired action.')
+        if(response != '1' and response != '2' and response != '3' and response.upper() != 'Q'):
+            print('Error: Please enter a valid response corresponding to desired action.')
         else:
             correct_input = True
     ssl_socket.send((response).encode())
@@ -100,14 +104,18 @@ def lawyerMenu(ssl_socket):
     #confirmation = ssl_socket.recv(1024).decode()
     print(confirmation)
     while True:
+        # lawyer credential identifier = 2
+        cred = 2
         if response == '1':
-            create_interview(ssl_socket)
+            create_interview(ssl_socket, cred)
             break
         elif response == '2':
-            reviewInterview(ssl_socket)
+            reviewInterview(ssl_socket, cred)
             break
         elif response == '3':
-            assignInterview(ssl_socket)
+            assignInterview(ssl_socket, cred)
+            break
+        elif response.upper() == 'Q':
             break
         else:
             sys.stdout.flush()
@@ -130,7 +138,7 @@ def lawyerMenu(ssl_socket):
 # - SYNC: test/refine loop control
 # =========================================================================
 
-def create_interview(ssl_socket):
+def create_interview(ssl_socket, cred):
     
     # incoming intro message
     intro_msg = ssl_socket.recv(1024).decode()
@@ -157,55 +165,50 @@ def create_interview(ssl_socket):
     
     ## INTERVIEW CREATION LOOP ##
     while(True):
+         
+        # incoming question entry request
+        question_msg = ssl_socket.recv(1024).decode()
+        if(len(question_msg) != 0):
+            print(question_msg)
         
-        ## question verification loop ##
-        while(True):
-            
-            # incoming question entry request
-            question_msg = ssl_socket.recv(1024).decode()
-            if(len(question_msg) != 0):
-                print(question_msg)
-            
-            # outgoing question submission (String)
-            question_entry = str(input(' > '))
-            ssl_socket.send(question_entry.encode() )
-            
-            # incoming question echo
-            echo = ssl_socket.recv(1024).decode()
-            if(len(echo) != 0):
-                print(echo)
-            
-            # incoming verify request
-            verify_msg = ssl_socket.recv(1024).decode()
-            if(len(verify_msg) != 0):
-                print(verify_msg)
-            
-            # outgoing verification (String) Y/N
-            verify_entry = str(input(' > ')) 
-            ssl_socket.send(verify_entry.encode() )
-            
-            ## INNER LOOP CONTROL ##
-            # Y: save question (terminate loop)
-            if verify_entry == 'Y':
-                
-                # incoming confirmation message
-                confirm_msg = ssl_socket.recv(1024).decode()
-                if(len(confirm_msg) != 0):
-                    print(confirm_msg)
-                break
-            
-            # N: redo question (loop again)
-            elif verify_entry == 'N':
-                continue
-            
-            # invalid response
-            else:
-                invalid_resp = ssl_socket.recv(1024).decode()
-                if(len(invalid_resp) != 0):
-                    print(invalid_resp)    
+        # outgoing question submission (String)
+        question_entry = str(input(' > '))
+        ssl_socket.send(question_entry.encode() )
         
-        ## OUTER LOOP CONTROL ##
+        # incoming question echo
+        echo = ssl_socket.recv(1024).decode()
+        if(len(echo) != 0):
+            print(echo)
         
+        # incoming verify request
+        verify_msg = ssl_socket.recv(1024).decode()
+        if(len(verify_msg) != 0):
+            print(verify_msg)
+        
+        # outgoing verification (String) Y/N
+        verify_entry = str(input(' > ')) 
+        ssl_socket.send(verify_entry.encode() )
+        
+        ## INNER LOOP CONTROL ##
+        # Y: save question (terminate loop)
+        if verify_entry.upper() == 'Y':
+            
+            # incoming confirmation message
+            confirm_msg = ssl_socket.recv(1024).decode()
+            question_id = ssl_socket.recv(1024).decode()
+            if(len(confirm_msg) != 0):
+                print(confirm_msg, question_id)
+        
+        # N: redo question (loop again)
+        elif verify_entry.upper() == 'N':
+            continue
+        
+        # invalid response
+        else:
+            invalid_resp = ssl_socket.recv(1024).decode()
+            if(len(invalid_resp) != 0):
+                print(invalid_resp)    
+            
         # incoming request for more questions
         add_msg = ssl_socket.recv(1024).decode()
         if(len(add_msg) != 0):
@@ -216,16 +219,17 @@ def create_interview(ssl_socket):
         ssl_socket.send(add_resp.encode() )
         
         # N: add new interview to database (terminate loop)
-        if add_resp == 'N':
+        if add_resp.upper() == 'N':
             
-            # incoming confirmation message
+            # incoming confirmation message and interview id
             db_msg = ssl_socket.recv(1024).decode()
+            interview_id = ssl_socket.recv(1024).decode()
             if(len(db_msg) != 0):
-                print(db_msg)
+                print(db_msg, interview_id)
             break
         
         # Y: add more questions (loop again)
-        elif add_resp == 'Y':
+        elif add_resp.upper() == 'Y':
             continue
         
         # invalid response
@@ -239,7 +243,10 @@ def create_interview(ssl_socket):
         # <PROTOCOL: retrieve interview from database and display full details?>
         
         # END create_interview: back to Lawyer Options
-        lawyerMenu(ssl_socket)
+    if cred == 2:
+        lawyerMenu(ssl_socket)   
+    elif cred == 3:
+        adminMenu(ssl_socket)
     
     # remove pass when code is complete
     #pass
@@ -260,7 +267,7 @@ def create_interview(ssl_socket):
 # - finalize interview assignment design (e.g. single or multiple assignment?)
 # =============================================================================
 
-def assign_interview(ssl_socket):
+def assign_interview(ssl_socket, cred):
 
     # Get name of Interviewee
     intro = ssl_socket.recv(1024).decode()
@@ -305,6 +312,10 @@ def assign_interview(ssl_socket):
     interview_conf = ssl_socket.recv(1024).decode() #
     print(interview_conf)	# INTERVIEW has been assigned to USER
 
+    if cred == 2:
+        lawyerMenu(ssl_socket)   
+    elif cred == 3:
+        adminMenu(ssl_socket)
 
     pass
     
@@ -327,7 +338,7 @@ def review_submissions():
 # - ENCRYPTION: add redirect to main menu
 # - test/refine loop control
 # =============================================================================
-def manage_interviews(ssl_socket):
+def manage_interviews(ssl_socket, cred):
     
     ## MANAGE_INTERVIEWS LOOP ##
     while(True):
@@ -451,7 +462,11 @@ def manage_interviews(ssl_socket):
             invalid_resp = ssl_socket.recv(1024).decode()
             if(len(invalid_resp) != 0):
                 print(invalid_resp)    
-        
+    
+    if cred == 2:
+        lawyerMenu(ssl_socket)   
+    elif cred == 3:
+        adminMenu(ssl_socket)
     # remove pass when code is complete    
     pass
 
@@ -526,7 +541,39 @@ def ssl_connection(client_socket):
     ssl.match_hostname(cert, _HOST)
     ssl_socket.do_handshake()
     return ssl_socket
-    
+
+"""
+def generate_server_self_cert(cert_dir): #takes a directory to save the certificate in
+   CERT_FILE = 'InterviewPortal.crt'
+   KEY_FILE = 'InterviewPortal.key'
+
+   if not exists(join(cert_dir, CERT_FILE)) \
+            or not exists(join(cert_dir, KEY_FILE)):
+            # create a key pair
+        publicKey = crypto.PKey()
+        publicKey.generate_key(crypto.TYPE_RSA, 1024)
+
+       # create a self-signed cert
+        cert = crypto.X509()
+        cert.get_subject().C = 'US'
+        cert.get_subject().ST = 'Illinois'
+        cert.get_subject().L = 'Chicago'
+        cert.get_subject().O = 'CSC 376'
+        cert.get_subject().OU = 'Interview Portal'
+        cert.get_subject().CN = socket.gethostname()
+        cert.set_serial_number(1000)
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(10*365*24*60*60)
+        cert.set_issuer(cert.get_subject())
+        cert.set_pubkey(publicKey)
+        cert.sign(publicKey, 'sha1')
+
+        open(join(cert_dir, CERT_FILE), 'wb').write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+        open(join(cert_dir, KEY_FILE), 'wb').write(crypto.dump_privatekey(crypto.FILETYPE_PEM, publicKey))
+   else:
+        print('Certificate/Key already exist! New one will not be generated.')
+ """
+
 # use:
 # openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout cert.pem
 # on the cmd line to generate new certificate (update ssl.match_hostname() parameter)
@@ -548,8 +595,7 @@ if __name__ == '__main__':
     ssl_socket = ssl_connection(client_socket)
 
     #Server greets client
-    greeting_msg = ssl_socket.recv(1024)
-    #greeting_msg = (greeting_msg).decode()
+    greeting_msg = ssl_socket.recv(1024).decode()
     print(greeting_msg)
 
     #Ask user to login or create new account

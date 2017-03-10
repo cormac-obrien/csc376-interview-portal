@@ -21,11 +21,11 @@ def delete_user(conn, user_id):
     conn.commit()
 
 
-def create_interview(conn, name, description):
+def create_interview(conn, interview_id, name, description):
     '''Create a new interview with the given name and description.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Interviews (interview_name, interview_description) VALUES (?, ?)', (name, description))
+    curs.execute('INSERT INTO Interviews VALUES (?, ?, ?)', (interview_id, name, description))
     curs.close()
     conn.commit()
 
@@ -46,11 +46,11 @@ def delete_interview(conn, interview_id):
     conn.commit()
 
 
-def add_question(conn, interview, text):
+def add_question(conn, question_id, interview, text):
     '''Add a new question with the given text to the given interview.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Questions (question_interview, question_text) VALUES (?, ?)', (interview, text))
+    curs.execute('INSERT INTO Questions VALUES (?, ?, ?)', (question_id, interview, text))
     curs.close()
     conn.commit()
 
@@ -70,7 +70,7 @@ def add_answer(conn, user_id, question_id, text):
     '''Add an answer by user_id to question_id with the given text.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Answers (answer_user, answer_question,) VALUES (?, ?, ?)', user_id, question_id, text)
+    curs.execute('INSERT INTO Answers (answer_user, answer_question) VALUES (?, ?, ?)', user_id, question_id, text)
     curs.close()
     conn.commit()
 
