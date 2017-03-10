@@ -68,12 +68,11 @@ def user_login(ssl_socket):
 		user_login(ssl_socket)
 	else:
 		print('Username and password are correct')
-		print('redirecting to another page')
+		print('Redirecting to another page')
 		intervieweeMenu(ssl_socket)
 	
 def user_register(ssl_socket):
 	Print('Register')
-	name = input('Enter your name')
 	user = input('Enter your username')
 	psw = input ('Enetr your password')
 	authkey = 'Something'
@@ -85,8 +84,8 @@ def user_register(ssl_socket):
 		print('Choose another username and password')
 		user_login(ssl_socket)
 	else:
-		print('Name, Username and password have been recorded')
-		print('redirecting to another page')
+		print('Name, Username and password have been created')
+		print('Redirecting to another page')
 		intervieweeMenu(ssl_socket)
 	
 	
@@ -100,7 +99,7 @@ def admin_login(ssl_socket):
 		admin_login(ssl_socket)
 	else:
 		print('Username and password are correct')
-		print('redirecting to another page')
+		print('Redirecting to another page')
 		adminMenu(ssl_socket)
 		
 def lawyer_login(ssl_socket):
@@ -113,7 +112,7 @@ def lawyer_login(ssl_socket):
 		lawyer_login(ssl_socket)
 	else:
 		print('Username and password are correct')
-		print('redirecting to another page')
+		print('Redirecting to another page')
 		lawyerMenu(ssl_socket)
 	
 	
