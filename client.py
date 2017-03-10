@@ -5,6 +5,7 @@
 # included in this distribution.
 
 #from interview_error import CredentialsException
+import os
 
 def terminate_session():
     print('Terminating connection to server')
@@ -541,38 +542,6 @@ def ssl_connection(client_socket):
     ssl.match_hostname(cert, _HOST)
     ssl_socket.do_handshake()
     return ssl_socket
-
-"""
-def generate_server_self_cert(cert_dir): #takes a directory to save the certificate in
-   CERT_FILE = 'InterviewPortal.crt'
-   KEY_FILE = 'InterviewPortal.key'
-
-   if not exists(join(cert_dir, CERT_FILE)) \
-            or not exists(join(cert_dir, KEY_FILE)):
-            # create a key pair
-        publicKey = crypto.PKey()
-        publicKey.generate_key(crypto.TYPE_RSA, 1024)
-
-       # create a self-signed cert
-        cert = crypto.X509()
-        cert.get_subject().C = 'US'
-        cert.get_subject().ST = 'Illinois'
-        cert.get_subject().L = 'Chicago'
-        cert.get_subject().O = 'CSC 376'
-        cert.get_subject().OU = 'Interview Portal'
-        cert.get_subject().CN = socket.gethostname()
-        cert.set_serial_number(1000)
-        cert.gmtime_adj_notBefore(0)
-        cert.gmtime_adj_notAfter(10*365*24*60*60)
-        cert.set_issuer(cert.get_subject())
-        cert.set_pubkey(publicKey)
-        cert.sign(publicKey, 'sha1')
-
-        open(join(cert_dir, CERT_FILE), 'wb').write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
-        open(join(cert_dir, KEY_FILE), 'wb').write(crypto.dump_privatekey(crypto.FILETYPE_PEM, publicKey))
-   else:
-        print('Certificate/Key already exist! New one will not be generated.')
- """
 
 # use:
 # openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout cert.pem
