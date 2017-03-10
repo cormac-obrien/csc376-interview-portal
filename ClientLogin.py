@@ -84,6 +84,8 @@ def user_register(ssl_socket):
 		print('Choose another username and password')
 		user_login(ssl_socket)
 	else:
+		ssl_socket.send(user.encode() )
+		ssl_socket.send(pswd.encode() )
 		print('Name, Username and password have been created')
 		print('Redirecting to another page')
 		intervieweeMenu(ssl_socket)
