@@ -4,7 +4,6 @@
 # For terms and conditions, please see the license file, which is
 # included in this distribution.
 
-#from interview_error import CredentialsException
 import os
 
 def terminate_session():
@@ -22,16 +21,14 @@ def adminMenu(ssl_socket):
     print('(1) create interview')
     print('(2) review interview')
     print('(3) assign interview')
-    print('(4) List users')
     print('(q) Log out and exit')
 
-    correct_input = False
-    while(not correct_input):
+    while(True):
         response = str(input(' > '))
         if(response != '1' and response != '2' and response != '3' and response.upper() != 'Q'):
             print('Error: Please enter a valid response corresponding to desired action.')
         else:
-            correct_input = True
+            break
     ssl_socket.send((response).encode())
 
     correct_input = False
@@ -49,9 +46,6 @@ def adminMenu(ssl_socket):
         elif response == '3':
             assign_interview(ssl_socket, cred)
             break
-        elif response == '4':
-            list_users()
-            break
         elif response.upper() == 'Q':
             break
         else:
@@ -64,13 +58,12 @@ def intervieweeMenu(ssl_socket):
     print('(1) take interview')
     print('(q) Log out and exit')
 
-    correct_input = False
-    while(not correct_input):
+    while(True):
         response = str(input(' > '))
         if(response != '1' and response != '2' and response != '3' and response.upper() != 'Q'):
             print('Error: Please enter a valid response corresponding to desired action.')
         else:
-            correct_input = True
+            break
     ssl_socket.send((response).encode())
 
     #confirmation = ssl_socket.recv(1024).decode()
@@ -93,13 +86,12 @@ def lawyerMenu(ssl_socket):
     print('(3) assign interview')
     print('(q) Log out and exit')
 
-    correct_input = False
-    while(not correct_input):
+    while(True):
         response = str(input(' > '))
         if(response != '1' and response != '2' and response != '3' and response.upper() != 'Q'):
             print('Error: Please enter a valid response corresponding to desired action.')
         else:
-            correct_input = True
+            break
     ssl_socket.send((response).encode())
 
     #confirmation = ssl_socket.recv(1024).decode()
@@ -216,7 +208,7 @@ def create_interview(ssl_socket, cred):
             print(add_msg)
         
         # outgoing response (String) Y/N
-        add_resp = input(str(' > '))
+        add_resp = str(input(' > '))
         ssl_socket.send(add_resp.encode() )
         
         # N: add new interview to database (terminate loop)
@@ -550,6 +542,7 @@ if __name__ == '__main__':
     import sys
     import socket
     import ssl
+    import ClientLogin
 
     argc = len(sys.argv)
 
@@ -560,8 +553,7 @@ if __name__ == '__main__':
         _HOST = str(sys.argv[1])
         _PORT = int(sys.argv[2])
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ssl_socket = ssl_connection(client_socket)
+    ssl_socket = ssl_connection(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
 
     #Server greets client
     greeting_msg = ssl_socket.recv(1024).decode()
@@ -573,7 +565,7 @@ if __name__ == '__main__':
 
     correct_input = False
     while(not correct_input):
-        response = str(input('> '))
+        response = str(input(' > '))
         if(response != '1' and response != '2' and response.upper() != 'L' and response.upper() != 'C'):
             print('Error: Please enter a valid number corresponding to desired action.')
         else:

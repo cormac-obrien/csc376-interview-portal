@@ -443,24 +443,36 @@ class ServerThread(threading.Thread):
         _LOGIN_STATUS = (User_Row != None)
 
         if _LOGIN_STATUS == True:
-            self.client_socket.send( ('2').encode() )
+            cred = '2'
+            # CHANGE cred TO USER CREDENTIAL IDENTIFIER BELOW
+            self.client_socket.send( (cred).encode() )
+        
+        while(True):
             response = str(self.client_socket.recv(1024).decode())
             print(response)
-            if response == '1':
-                self.create_interview()
-                return
-            elif response == '2':
-                self.review_submissions()
-                
-            elif response == '3':
-                self.assign_interview()
-                return
-            elif response == '4':
-                self.manage_interviews()
-                return
-            elif response == '4':
-                self.take_interview()
-                return
+            if(cred == '1'):    #INTERVIEWEE
+                if response == '1':
+                    self.take_interview()
+                elif response.upper() == 'Q':
+                    break
+            elif(cred == '2'):    #LAWYER
+                if response == '1':
+                    self.create_interview()
+                elif response == '2':
+                    self.review_submissions()
+                elif response == '3':
+                    self.assign_interview()
+                elif response.upper() == 'Q':
+                    return
+            elif(cred == '3'):      #ADMIN
+                if response == '1':
+                    self.create_interview()
+                elif response == '2':
+                    self.review_submissions()
+                elif response == '3':
+                    self.assign_interview()
+                elif response.upper() == 'Q':
+                    return
         else:
             self.client_socket.send( ("Invalid Username").encode() )
 
