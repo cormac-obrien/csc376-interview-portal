@@ -78,7 +78,9 @@ def user_register(ssl_socket):
 	psw = input ('Enetr your password')
 	authkey = 'Something'
 	
-	if register==False:
+	# Register function needs to check the name as well 
+	# Where does authkey come from?
+	if register(user,pswd, authkey)==False:
 		print('username and password are taken')
 		print('Choose another username and password')
 		user_login(ssl_socket)
