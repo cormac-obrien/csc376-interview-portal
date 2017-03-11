@@ -555,14 +555,14 @@ if __name__ == '__main__':
     import ssl
     import ClientLogin
 
-    argc = len(sys.argv)
-
-    if (argc != 3):
-        _HOST = str(input('Enter HOST name: '))
-        _PORT = int(input('Enter PORT number: '))
-    else:
-        _HOST = str(sys.argv[1])
-        _PORT = int(sys.argv[2])
+    # argc = len(sys.argv)
+    #
+    # if (argc != 3):
+    #     _HOST = str(input('Enter HOST name: '))
+    #     _PORT = int(input('Enter PORT number: '))
+    # else:
+    #     _HOST = str(sys.argv[1])
+    #     _PORT = int(sys.argv[2])
 
     ssl_socket = ssl_connection(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
 
@@ -587,6 +587,9 @@ if __name__ == '__main__':
         ssl_socket.send((new_USER_NAME).encode())
         USER_AUTH = str(input('Enter Authorization: '))
         ssl_socket.send((USER_AUTH).encode())
+        new_USER_PW = str (input('Enter Password:'))
+        new_USER_PW = LoginAuthentication.get_hashed_password(new_USER_PW)
+        ssl_socket.send(new_USER_PW)
 
     # Prompt For Password and Username
     USER_NAME = str(input('Username: '))

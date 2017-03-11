@@ -499,17 +499,23 @@ class ServerThread(threading.Thread):
     #greet and request username and password
         self.client_socket.send( ('Welcome to the Interview Portal').encode() )
 
+        sqlFile = 'schema.sql'
+        qry = open(sqlFile, 'r').read()
         conn= sqlite3.connect( 'interview.db' )
         cur = conn.cursor()
+        cur.executescript(qry)
 
         #Creating a new user
         response = str(self.client_socket.recv(1024).decode()) # User chooses to login or create a new account
         if (response == '2'):
             self._USER_NAME = str(self.client_socket.recv(1024).decode())
             self._USER_AUTH = int(self.client_socket.recv(1024).decode())
-            cur.execute("INSERT INTO Users ( user_name, user_perms) VALUES ( ?, ?);", (self._USER_NAME, self._USER_AUTH))
+            self._USER_PW = str(self.client_socket.recv(1024).decode())
+            print(self._USER_NAME, self._USER_AUTH, self._USER_PW)
+            cur.execute("INSERT INTO Users ( user_name, user_password, user_perms) VALUES ( ?, ?, ?);",
+                        (self._USER_NAME,  self._USER_AUTH, self._USER_PW))
             conn.commit()
-
+            print("Account created successfully")
         self._USER_NAME = str(self.client_socket.recv(1024).decode())
         self._USER_PW   = str(self.client_socket.recv(1024).decode())
 
