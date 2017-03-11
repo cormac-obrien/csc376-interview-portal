@@ -34,7 +34,9 @@ CREATE TABLE Interviews
   interview_id INTEGER UNIQUE NOT NULL,
   interview_name TEXT NOT NULL,
   interview_description TEXT NOT NULL,
-  CONSTRAINT pk_interview_id PRIMARY KEY (interview_id)
+  interview_user INTEGER, 
+  CONSTRAINT pk_interview_id PRIMARY KEY (interview_id),
+  CONSTRAINT fk_interview_user FOREIGN KEY (interview_user) REFERENCES Users (user_id)
 );
 
 CREATE TABLE Questions

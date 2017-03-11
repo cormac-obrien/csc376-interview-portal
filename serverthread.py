@@ -68,7 +68,8 @@ class ServerThread(threading.Thread):
                 unique = True
 
         # create interview
-        db.create_interview(conn, interview_id, name, desc)
+
+        db.create_interview(conn, interview_id, name, desc, None)
 
         ## INTERVIEW CREATION LOOP ##
         while(True):
@@ -163,51 +164,56 @@ class ServerThread(threading.Thread):
 
         ###CHECK DATABASE FOR###
         # import sqlite3 first
-        conn= sqlite3.connect( 'interview.db' )
-        #conn.row_factory = sqlite3.Row
-        User_Row = conn.execute("SELECT user_id, user_name FROM Users WHERE user_name = ?", (User_Search,)).fetchone() 
-
-        #if no existing user
-        while User_Row == None: #invalid user
-            self.client_socket.send( ('User does not exist, try again.').encode() )
-            if User_Search == 'quit':
-                return
-            User_Search = self.client_socket.recv(1024).decode()
-            conn.row_factory = sqlite3.Row
-            User_Row = conn.execute("SELECT user_id, user_name FROM Users WHERE user_name = ?", (User_Search,)).fetchone() 
         
+        conn= sqlite3.connect( 'interview.db' )
+        interview_user = ''
+        while True:
+            try:
+                interview_user = db.retrieve_user_by_name(conn, User_Search)
+                break
+            except TypeError:
+                #if no existing user
+                self.client_socket.send( ('User does not exist, try again.').encode() )
+                if interview_user == 'quit':
+                    return
+                User_Search = self.client_socket.recv(1024).decode()
+                #interview_user = db.retrieve_user_by_name(conn, User_Search)
+
         self.client_socket.send( ('User exists').encode() )#user_conf
-        User_Found = User_Row[0]
+        #User_Found = User_Row[0]
         
         #else
+        #display list of available interviews
+        conn= sqlite3.connect( 'interview.db' )
+        interviews = db.retrieve_interview_all(conn)
+        for interview in interviews:
+             self.client_socket.send( ('(' + str(interview[0]) + ') ' + interview[1]).encode() )
         #Recieves a interview from client
 
-
-        Interview_Search = self.client_socket.recv(1024).decode()
-
-        ###CHECK DATABASE FOR INTERVIEW###
-        #conn.row_factory = sqlite3.Row
-        Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", (Interview_Search,)).fetchone()
+        self.client_socket.send( ('end').encode() )
 
 
-        #if no existing user
-        while Interview_Row == None:
-            self.client_socket.send( ('Interview does not exist, try again.').encode() )
-            if Interview_Search == 'quit':
-                return
-            Interview_Search = self.client_socket.recv(1024).decode()
-            conn.row_factory = sqlite3.Row
-            Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", (Interview_Search,)).fetchone() 
-        Interview_Found = Interview_Row['interview_name']
+        interview_id = self.client_socket.recv(1024).decode()
+
+        
+        while True:
+            try:
+                interview_name = db.retrieve_interview_title(conn, interview_id)
+                break
+            except TypeError:
+                self.client_socket.send( ('Interview does not exist, try again.').encode() )
+                if interview_name == 'quit':
+                    return
+                interview_id = self.client_socket.recv(1024).decode()       
 
         self.client_socket.send( ('Assigning Interview').encode() ) #interview_conf
 
         ###ADD INTERVIEW TO USER'S INBOX###
-
-        self.client_socket.send( (Interview_Search + " has been assigned to " + User_Search + ".").encode() ) #interview_conf
+        db.assign_interview(conn, interview_id, interview_user )
+        self.client_socket.send( (interview_name + " has been assigned to " + User_Search + ".").encode() ) #interview_conf
 
         conn.close()
-        pass
+        return
     
     # ===========================================================================
     #             LAWYER: REVIEW SUBMISSIONS  

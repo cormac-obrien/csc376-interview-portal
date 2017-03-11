@@ -36,19 +36,19 @@ def retrieve_user_by_name(conn, username):
     '''Retrieve the user ID of the user with the given name.'''
 
     curs = conn.cursor()
-    curs.execute('SELECT user_id FROM Users WHERE user_name = ?', (username))
+    curs.execute('SELECT user_id FROM Users WHERE user_name = ?', (username,))
     user_id = curs.fetchone()[0]
     curs.close()
     conn.commit()
     return user_id
 
 
-def create_interview(conn, interview_id, name, description):
+def create_interview(conn, interview_id, name, description, user):
     '''Create a new interview with the given name and description.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Interviews VALUES (?, ?, ?)',
-                 (interview_id, name, description))
+    curs.execute('INSERT INTO Interviews VALUES (?, ?, ?, ?)',
+                 (interview_id, name, description, user))
     curs.close()
     conn.commit()
 
@@ -73,14 +73,27 @@ def retrieve_interview_title(conn, interview_id):
     '''Retrieve the title of the interview with the given ID.'''
 
     curs = conn.cursor()
-    curs.execute('''SELECT interview_title FROM Interviews
+    curs.execute('''SELECT interview_name FROM Interviews
                       WHERE interview_id = ?''',
-                 (interview_id))
+                 (interview_id,))
     title = curs.fetchone()[0]
     curs.close()
     conn.commit()
     return title
 
+def retrieve_interview_all(conn):
+	curs = conn.cursor()
+	interviews = curs.execute('SELECT interview_id, interview_name FROM Interviews') 
+	#curs.close()
+	conn.commit()
+	return interviews
+
+def assign_interview(conn, interview_id, interview_user ):
+	curs = conn.cursor()
+	interviews = curs.execute('UPDATE Interviews set interview_user = ? where interview_id = ?',
+		(interview_user, interview_id)) 
+	curs.close()
+	conn.commit()
 
 def add_question(conn, question_id, interview, text):
     '''Add a new question with the given text to the given interview.'''

@@ -106,7 +106,7 @@ def lawyerMenu(ssl_socket):
             reviewInterview(ssl_socket, cred)
             break
         elif response == '3':
-            assignInterview(ssl_socket, cred)
+            assign_interview(ssl_socket, cred)
             break
         elif response.upper() == 'Q':
             break
@@ -283,9 +283,12 @@ def assign_interview(ssl_socket, cred):
         user_conf = ssl_socket.recv(1024).decode()
 
     print(user_conf)
-
+    interview= ''
+    while (interview != 'end'):
+        interview = ssl_socket.recv(1024).decode()
+        print(interview)
     # Get name of Interview
-    print('Enter the name of the interviewe you wish to assign:')
+    print('Enter the number of the interview you wish to assign to the user:')
     interview = str(input(' > '))
 
     #Confirms that the interview exists
@@ -305,12 +308,15 @@ def assign_interview(ssl_socket, cred):
     interview_conf = ssl_socket.recv(1024).decode() #
     print(interview_conf)	# INTERVIEW has been assigned to USER
 
+    '''if cred == 2:
+        lawyerMenu(ssl_socket)   
+    elif cred == 3:
+        adminMenu(ssl_socket)
+    '''
     if cred == 2:
         lawyerMenu(ssl_socket)   
     elif cred == 3:
         adminMenu(ssl_socket)
-
-    pass
     
 def review_submissions():
     pass
