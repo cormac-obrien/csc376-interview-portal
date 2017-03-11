@@ -8,6 +8,8 @@ import sys
 import threading
 import socket
 import sqlite3
+import db
+import random
 
 class ServerThread(threading.Thread):    
     def __init__(self, client_socket, connection_id):
@@ -27,7 +29,8 @@ class ServerThread(threading.Thread):
       
     # =========================================================================
     #             LAWYER: INTERVIEW CREATION   
-    # Status: Incomplete (skeleton finished)
+    #
+    # Status: needs testing and refinement
     # 
     # Precondition: 
     # - Lawyer/Staff access
@@ -46,67 +49,93 @@ class ServerThread(threading.Thread):
         
         # interview creation intro
         self.client_socket.send( ('Interview Creation').encode() )
+        # db connection
+        conn = sqlite3.connect( 'interview.db' )
         
         # interview name entry
         self.client_socket.send( ('Enter a name for the interview').encode() )
-        name = self.client_socket.recv(1024)
+        name = self.client_socket.recv(1024).decode()
         
-        # <PROTOCOL: name recorded to String variable?>
-        
+        # interview description entry
+        self.client_socket.send( ('Enter a description for the interview').encode() )
+        desc = self.client_socket.recv(1024).decode()
+
+        # generates a pseudorandom, unique ID for this INTERVIEW
+        unique = False
+        while(not unique):
+            interview_id = random.randrange(1, 99999)
+            if(interview_id not in conn.execute('SELECT interview_id FROM Interviews')):
+                unique = True
+
+        # create interview
+
+        db.create_interview(conn, interview_id, name, desc, None)
+
         ## INTERVIEW CREATION LOOP ##
         while(True):
+
+            # generates a pseudorandom, unique ID for this QUESTION
+            unique = False
+            while(not unique):
+                question_id = random.randrange(1, 99999)
+                if(question_id not in conn.execute('SELECT question_id FROM Questions')):
+                    unique = True            
             
-            ## verification loop ##
-            while(True):            
-                
-                # question entry
-                self.client_socket.send( ('Enter a question').encode() )
-                echo = self.clent_socket.recv(1024)
-                # echo entry
-                self.client_socket.send('You entered:' + echo)
-                                
-                # question verification (verification loop control)
-                self.client_socket.send( ('Add this question to the interview? Y/N').encode() )
-                verify = self.client_socket.recv(1024)
-                
-                # Y: link question to interview (terminate loop)
-                if verify == 'Y':
-                    # <PROTOCOL: add question to list variable?>
-                    self.client_socket.send( ('Question saved.').encode() )
-                    break
-                # N: re-enter question (repeat loop)
-                elif verify == 'N':
-                    continue
-                # invalid (error msg)
-                else:
-                    self.client_socket.send( ('Invalid Input!  Please answer with Y or N').encode() )
-                    
+            # question entry
+            self.client_socket.send( ('Enter a question').encode() )
+            question = self.client_socket.recv(1024).decode()
+            # echo entry
+            self.client_socket.send( ('You entered:' + question).encode() )
+                            
+            # question verification (verification loop control)
+            self.client_socket.send( ('Add this question to the interview? Y/N').encode() )
+            verify = self.client_socket.recv(1024).decode()
+            
+            # Y: link question to interview (terminate loop)
+            if verify.upper() == 'Y':
+
+                # add question to database
+                db.add_question(conn, question_id, interview_id, question)
+                self.client_socket.send( ('Question saved! ID:').encode() )
+                self.client_socket.send( str(question_id).encode() )
+                print('Question ID:', question_id)
+            
+            # N: re-enter question (repeat loop)
+            elif verify.upper() == 'N':
+                continue
+
+            # invalid (error msg)
+            else:
+                self.client_socket.send( ('Error: Please answer with Y or N').encode() )
                     
             ## interview progression (interview creation loop control) ##
             self.client_socket.send( ('Would you like to add another question? Y/N').encode() )
-            response = self.client_socket.recv(1024)
+            response = self.client_socket.recv(1024).decode()
             
             # N: submit interview to database (terminate loop)
-            if response == 'N':
-                # <PROTOCOL: interview name and questions added to database >
-                self.client_socket.send( ('<INTERVIEW NAME> added to database.').encode() )
+            if response.upper() == 'N':
+                # confirmation message
+                self.client_socket.send( ('Interview creation finished! ID:').encode() )
+                self.client_socket.send( str(interview_id).encode() )
+                print('Interview ID:', interview_id)
                 break
             # Y: continue adding questions (repeat loop)
-            elif response == 'Y':
+            elif response.upper() == 'Y':
                 continue
             # invalid response (error msg)
             else:
-                self.client_socket.send( ('Invalid Response!').encode() )
+                self.client_socket.send( ('Error.').encode() )
         
         ## post-creation display ##
         
-        # <PROTOCOL: retrieve interview from database and display full details?>
+        # TODO: retrieve and display name and description
         
+        # TODO: retrieve and display questions
                 
         # END create_interview: go back to Lawyer Options
         
         # remove pass when code is complete
-        pass
+        #pass
     
     # ===========================================================================
     #             LAWYER: INTERVIEW ASSIGNMENT   
@@ -135,51 +164,56 @@ class ServerThread(threading.Thread):
 
         ###CHECK DATABASE FOR###
         # import sqlite3 first
-        conn= sqlite3.connect( 'interview.db' )
-        #conn.row_factory = sqlite3.Row
-        User_Row = conn.execute("SELECT user_id, user_name FROM Users WHERE user_name = ?", (User_Search,)).fetchone() 
-
-        #if no existing user
-        while User_Row == None: #invalid user
-            self.client_socket.send( ('User does not exist, try again.').encode() )
-            if User_Search == 'quit':
-                return
-            User_Search = self.client_socket.recv(1024).decode()
-            conn.row_factory = sqlite3.Row
-            User_Row = conn.execute("SELECT user_id, user_name FROM Users WHERE user_name = ?", (User_Search,)).fetchone() 
         
+        conn= sqlite3.connect( 'interview.db' )
+        interview_user = ''
+        while True:
+            try:
+                interview_user = db.retrieve_user_by_name(conn, User_Search)
+                break
+            except TypeError:
+                #if no existing user
+                self.client_socket.send( ('User does not exist, try again.').encode() )
+                if interview_user == 'quit':
+                    return
+                User_Search = self.client_socket.recv(1024).decode()
+                #interview_user = db.retrieve_user_by_name(conn, User_Search)
+
         self.client_socket.send( ('User exists').encode() )#user_conf
-        User_Found = User_Row[0]
+        #User_Found = User_Row[0]
         
         #else
+        #display list of available interviews
+        conn= sqlite3.connect( 'interview.db' )
+        interviews = db.retrieve_interview_all(conn)
+        for interview in interviews:
+             self.client_socket.send( ('(' + str(interview[0]) + ') ' + interview[1]).encode() )
         #Recieves a interview from client
 
-
-        Interview_Search = self.client_socket.recv(1024).decode()
-
-        ###CHECK DATABASE FOR INTERVIEW###
-        #conn.row_factory = sqlite3.Row
-        Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", (Interview_Search,)).fetchone()
+        self.client_socket.send( ('end').encode() )
 
 
-        #if no existing user
-        while Interview_Row == None:
-            self.client_socket.send( ('Interview does not exist, try again.').encode() )
-            if Interview_Search == 'quit':
-                return
-            Interview_Search = self.client_socket.recv(1024).decode()
-            conn.row_factory = sqlite3.Row
-            Interview_Row = conn.execute("SELECT interview_name FROM Interviews WHERE interview_name = ?", (Interview_Search,)).fetchone() 
-        Interview_Found = Interview_Row['interview_name']
+        interview_id = self.client_socket.recv(1024).decode()
+
+        
+        while True:
+            try:
+                interview_name = db.retrieve_interview_title(conn, interview_id)
+                break
+            except TypeError:
+                self.client_socket.send( ('Interview does not exist, try again.').encode() )
+                if interview_name == 'quit':
+                    return
+                interview_id = self.client_socket.recv(1024).decode()       
 
         self.client_socket.send( ('Assigning Interview').encode() ) #interview_conf
 
         ###ADD INTERVIEW TO USER'S INBOX###
-
-        self.client_socket.send( (Interview_Search + " has been assigned to " + User_Search + ".").encode() ) #interview_conf
+        db.assign_interview(conn, interview_id, interview_user )
+        self.client_socket.send( (interview_name + " has been assigned to " + User_Search + ".").encode() ) #interview_conf
 
         conn.close()
-        pass
+        return
     
     # ===========================================================================
     #             LAWYER: REVIEW SUBMISSIONS  
@@ -205,11 +239,11 @@ class ServerThread(threading.Thread):
         # interview retrieval
         # < search criteria? name, id? >
         self.client_socket.send( ('').encode() )
-        self.client_socket.recv(1024)
+        self.client_socket.recv(1024).decode()
         
         # < retrieve interview from database >
         # < send ID details >
-        self.client_socket.send( ().encode() )
+        self.client_socket.send( ('').encode() )
         
         # < INTERVIEW QUESTIONS LOOP >
         
@@ -241,7 +275,7 @@ class ServerThread(threading.Thread):
             self.client_socket.send( ('E: Edit/View an interview').encode() )
             self.client_socket.send( ('D: Delete an interview').encode() )
             self.client_socket.send( ('Q: Back to Lawyer Options').encode() )
-            option = self.client_socket.recv(1024)
+            option = self.client_socket.recv(1024).decode()
             
             conn = splite3.connect('interview.db') #temporary database
 
@@ -364,7 +398,7 @@ class ServerThread(threading.Thread):
             
         # interview selection <PROTOCOL: search by sequence number?>
         self.client_socket.send( ('Select an interview to take').encode() )
-        interview_sel = self.client_socket.recv(1024)
+        interview_sel = self.client_socket.recv(1024).decode()
         
         # <PROTOCOL: 
         #    - retrieve interview based on criteria
@@ -379,7 +413,6 @@ class ServerThread(threading.Thread):
         # remove pass when code is done
         pass
     
-
     def run(self):
     #greet and request username and password
         self.client_socket.send( ('Welcome to the Interview Portal').encode() )
@@ -415,26 +448,37 @@ class ServerThread(threading.Thread):
 
         _LOGIN_STATUS = (User_Row != None)
 
-       
         if _LOGIN_STATUS == True:
-            self.client_socket.send( ('2').encode() )
+            cred = '2'
+            # CHANGE cred TO USER CREDENTIAL IDENTIFIER BELOW
+            self.client_socket.send( (cred).encode() )
+        
+        while(True):
             response = str(self.client_socket.recv(1024).decode())
             print(response)
-            if response == '1':
-                self.create_interview()
-                return
-            elif response == '2':
-                self.review_submissions()
-                
-            elif response == '3':
-                self.assign_interview()
-                return
-            elif response == '4':
-                self.manage_interviews()
-                return
-            elif response == '4':
-                self.take_interview()
-                return
+            if(cred == '1'):    #INTERVIEWEE
+                if response == '1':
+                    self.take_interview()
+                elif response.upper() == 'Q':
+                    break
+            elif(cred == '2'):    #LAWYER
+                if response == '1':
+                    self.create_interview()
+                elif response == '2':
+                    self.review_submissions()
+                elif response == '3':
+                    self.assign_interview()
+                elif response.upper() == 'Q':
+                    return
+            elif(cred == '3'):      #ADMIN
+                if response == '1':
+                    self.create_interview()
+                elif response == '2':
+                    self.review_submissions()
+                elif response == '3':
+                    self.assign_interview()
+                elif response.upper() == 'Q':
+                    return
         else:
             self.client_socket.send( ("Invalid Username").encode() )
 
