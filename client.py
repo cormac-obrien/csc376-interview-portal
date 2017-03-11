@@ -240,13 +240,10 @@ def create_interview(ssl_socket, cred):
         lawyerMenu(ssl_socket)   
     elif cred == 3:
         adminMenu(ssl_socket)
-    
-    # remove pass when code is complete
-    #pass
        
 # ===========================================================================
 #             LAWYER: INTERVIEW ASSIGNMENT   
-# Status: Incomplete
+# Status: Complete
 # 
 # Precondition(s): 
 # - interview exists
@@ -255,9 +252,6 @@ def create_interview(ssl_socket, cred):
 # Postcondition:
 # - interviewee can access interview
 #
-# TO DO
-# - encrypt/decrypt messages
-# - finalize interview assignment design (e.g. single or multiple assignment?)
 # =============================================================================
 
 def assign_interview(ssl_socket, cred):
@@ -265,7 +259,7 @@ def assign_interview(ssl_socket, cred):
     # Get name of Interviewee
     intro = ssl_socket.recv(1024).decode()
     print(intro)
-    print('Enter the name of the interviewe you wish to assign:')
+    print('Enter the name of the interviewee you wish to assign:')
     user = str(input(' > '))
 
     #Confirms that the interviewee exists
@@ -373,8 +367,11 @@ def manage_interviews(ssl_socket, cred):
             if(len(edit_msg) != 0):
                 print(edit_msg)
                 
-            # <PROTOCOL: generate interview list from database >
-            # display <none> if none exist
+            # incoming lawyer-created interviews list
+            interview= ''
+            while (interview != 'end'):
+                interview = ssl_socket.recv(1024).decode()
+                print(interview)
             
             # incoming interview selection message
             select_msg = ssl_socket.recv(1024).decode()
