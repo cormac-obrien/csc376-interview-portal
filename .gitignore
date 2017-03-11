@@ -1,1 +1,7 @@
 *.log
+
+*.pyc
+
+*.pyc
+
+__pycache__/answer.cpython-36.pyc
