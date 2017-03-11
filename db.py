@@ -21,11 +21,34 @@ def delete_user(conn, user_id):
     conn.commit()
 
 
+def retrieve_user_name(conn, user_id):
+    '''Retrieve the username of the user with the given ID.'''
+
+    curs = conn.cursor()
+    curs.execute('SELECT user_name FROM Users WHERE user_id = ?', (user_id))
+    username = curs.fetchone()[0]
+    curs.close()
+    conn.commit()
+    return username
+
+
+def retrieve_user_by_name(conn, username):
+    '''Retrieve the user ID of the user with the given name.'''
+
+    curs = conn.cursor()
+    curs.execute('SELECT user_id FROM Users WHERE user_name = ?', (username))
+    user_id = curs.fetchone()[0]
+    curs.close()
+    conn.commit()
+    return user_id
+
+
 def create_interview(conn, interview_id, name, description):
     '''Create a new interview with the given name and description.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Interviews VALUES (?, ?, ?)', (interview_id, name, description))
+    curs.execute('INSERT INTO Interviews VALUES (?, ?, ?)',
+                 (interview_id, name, description))
     curs.close()
     conn.commit()
 
@@ -46,11 +69,25 @@ def delete_interview(conn, interview_id):
     conn.commit()
 
 
+def retrieve_interview_title(conn, interview_id):
+    '''Retrieve the title of the interview with the given ID.'''
+
+    curs = conn.cursor()
+    curs.execute('''SELECT interview_title FROM Interviews
+                      WHERE interview_id = ?''',
+                 (interview_id))
+    title = curs.fetchone()[0]
+    curs.close()
+    conn.commit()
+    return title
+
+
 def add_question(conn, question_id, interview, text):
     '''Add a new question with the given text to the given interview.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Questions VALUES (?, ?, ?)', (question_id, interview, text))
+    curs.execute('INSERT INTO Questions VALUES (?, ?, ?)',
+                 (question_id, interview, text))
     curs.close()
     conn.commit()
 
@@ -66,11 +103,23 @@ def delete_question(conn, question_id):
     conn.commit()
 
 
+def retrieve_question(conn, question_id):
+    '''Retrieve the question with the given ID.'''
+
+    curs = conn.cursor()
+    curs.execute('SELECT question_text FROM Questions WHERE question_id = ?')
+    text = curs.fetchone()[0]
+    curs.close()
+    conn.commit()
+    return text
+
+
 def add_answer(conn, user_id, question_id, text):
     '''Add an answer by user_id to question_id with the given text.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Answers (answer_user, answer_question) VALUES (?, ?, ?)', user_id, question_id, text)
+    curs.execute('''INSERT INTO Answers (answer_user, answer_question, answer_text)
+                      VALUES (?, ?, ?)''', (user_id, question_id, text))
     curs.close()
     conn.commit()
 
@@ -84,5 +133,25 @@ def delete_answer(conn, answer_id):
     conn.commit()
 
 
+def retrieve_answer(conn, user_id, question_id):
+    '''Retrieve the given user's answer to the given question.'''
+
+    curs = conn.cursor()
+    curs.execute('''SELECT answer_text FROM Answers
+                      WHERE answer_user = ?
+                      AND answer_question = ?''',
+                 (user_id, question_id))
+    ans = curs.fetchone()[0]
+    curs.close()
+    conn.commit()
+    return ans
+
+
 if __name__ == '__main__':
-    conn = sqlite3.connect('interview.db')
+    try:
+        conn = sqlite3.connect('test.db')
+        add_user(conn, 'cobrien', None, 0)
+        conn.close()
+    finally:
+        import os
+        os.remove('test.db')
