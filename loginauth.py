@@ -2,6 +2,8 @@ import sys
 import hashlib
 import getpass
 import sqlite3
+import bcrypt
+
 from passlib.hash import sha256_crypt
 
 class LoginAuthentication:
@@ -93,3 +95,9 @@ class LoginAuthentication:
         finally:
             self.lock.release()
             return created
+
+
+    def get_hashed_password( plain_text_password):
+        return bcrypt.hashpw(plain_text_password.encode('utf-8'), bcrypt.gensalt())
+
+
