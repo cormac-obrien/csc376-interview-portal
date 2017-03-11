@@ -1,2 +1,12 @@
 __pycache__/
 *.log
+
+*.pyc
+
+*.pyc
+
+__pycache__/answer.cpython-36.pyc
+
+*.xml
+
+.idea/workspace.xml

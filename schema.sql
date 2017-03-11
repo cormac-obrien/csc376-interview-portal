@@ -34,7 +34,7 @@ CREATE TABLE Interviews
   interview_id INTEGER UNIQUE NOT NULL,
   interview_name TEXT NOT NULL,
   interview_description TEXT NOT NULL,
-  interview_user INTEGER, 
+  interview_user INTEGER,
   CONSTRAINT pk_interview_id PRIMARY KEY (interview_id),
   CONSTRAINT fk_interview_user FOREIGN KEY (interview_user) REFERENCES Users (user_id)
 );
@@ -61,4 +61,15 @@ CREATE TABLE Answers
   CONSTRAINT fk_answer_question FOREIGN KEY (answer_question) REFERENCES Questions (question_id)
 );
 
+--DG
+CREATE TABLE IF NOT EXISTS Login
+(
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+  	authkey TEXT NOT NULL,
+
+  	CONSTRAINT pk_username PRIMARY KEY (username),
+  	CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES Users(user_name)
+);
+--DG
 COMMIT TRANSACTION;

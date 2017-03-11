@@ -4,6 +4,13 @@
 # For terms and conditions, please see the license file, which is
 # included in this distribution.
 
+#from interview_error import CredentialsException
+from loginauth import LoginAuthentication
+#DG
+_HOST = "localhost"
+_PORT = 8001
+#DG
+
 import os
 
 def terminate_session():
@@ -541,6 +548,7 @@ def ssl_connection(client_socket):
 # use:
 # openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout cert.pem
 # on the cmd line to generate new certificate (update ssl.match_hostname() parameter)
+
 if __name__ == '__main__':
     import sys
     import socket
@@ -558,43 +566,43 @@ if __name__ == '__main__':
 
     ssl_socket = ssl_connection(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
 
-    #Server greets client
+    # Server greets client
     greeting_msg = ssl_socket.recv(1024).decode()
     print(greeting_msg)
 
-    #Ask user to login or create new account
+    # Ask user to login or create new account
     print('(1) Login.')
     print('(2) Create New User.')
 
     correct_input = False
-    while(not correct_input):
+    while (not correct_input):
         response = str(input(' > '))
-        if(response != '1' and response != '2' and response.upper() != 'L' and response.upper() != 'C'):
+        if (response != '1' and response != '2' and response.upper() != 'L' and response.upper() != 'C'):
             print('Error: Please enter a valid number corresponding to desired action.')
         else:
             correct_input = True
     ssl_socket.send((response).encode())
     if (response == '2'):
-    	new_USER_NAME = str(input('Enter Username: '))
-    	ssl_socket.send((new_USER_NAME).encode())
-    	USER_AUTH     = str(input('Enter Authorization: '))
-    	ssl_socket.send((USER_AUTH).encode())
+        new_USER_NAME = str(input('Enter Username: '))
+        ssl_socket.send((new_USER_NAME).encode())
+        USER_AUTH = str(input('Enter Authorization: '))
+        ssl_socket.send((USER_AUTH).encode())
 
-    #Prompt For Password and Username
+    # Prompt For Password and Username
     USER_NAME = str(input('Username: '))
     ssl_socket.send((USER_NAME).encode())
-    USER_PW   = str(input('Password: '))
+    USER_PW = str(input('Password: '))
     ssl_socket.send((USER_PW).encode())
 
-    confirmation= str(ssl_socket.recv(1024).decode()) # confirms credentials
-    print(confirmation)                             #print credentials
+    confirmation = str(ssl_socket.recv(1024).decode())  # confirms credentials
+    print(confirmation)  # print credentials
     try:
         cred = int(confirmation)
-        
+
     except ValueError:
         terminate_session()
         sys.exit()
-        
+
     if cred == 1:
         print('interviewee')
         intervieweeMenu(ssl_socket)
