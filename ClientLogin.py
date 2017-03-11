@@ -61,10 +61,10 @@ def menu(ssl_socket):
 def user_login(ssl_socket):
 	Print('Login ')
 	user = input('Enter your username')
-	psw = input ('Enetr your password')
+	psw = input ('Enter your password')
 	
 	if login(user,pswd)==False:
-		print('username and password combination is incorrect')
+		print('Username and password combination is incorrect')
 		user_login(ssl_socket)
 	else:
 		print('Username and password are correct')
@@ -74,13 +74,13 @@ def user_login(ssl_socket):
 def user_register(ssl_socket):
 	Print('Register')
 	user = input('Enter your username')
-	psw = input ('Enetr your password')
+	psw = input ('Enter your password')
 	authkey = 'Something'
 	
 	# Register function needs to check the name as well 
 	# Where does authkey come from?
 	if register(user,pswd, authkey)==False:
-		print('username and password are taken')
+		print('Username and password are taken')
 		print('Choose another username and password')
 		user_login(ssl_socket)
 	else:

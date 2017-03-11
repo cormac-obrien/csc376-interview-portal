@@ -104,7 +104,6 @@ def add_question(conn, question_id, interview, text):
     curs.close()
     conn.commit()
 
-
 def delete_question(conn, question_id):
     '''Delete the question with the given ID.'''
 
@@ -125,6 +124,15 @@ def retrieve_question(conn, question_id):
     curs.close()
     conn.commit()
     return text
+
+def retrieve_questions(conn, interview_id):
+    '''Retrieve questions for a given interview ID'''
+    
+    curs = conn.cursor()
+    questions = curs.execute('SELECT question_text, question_sequence FROM Questions WHERE question_interview = ? ORDER BY question_sequence ASC',
+                 (interview_id))
+    conn.commit()
+    return questions
 
 
 def add_answer(conn, user_id, question_id, text):
