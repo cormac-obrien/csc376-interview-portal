@@ -95,12 +95,12 @@ def assign_interview(conn, interview_id, interview_user ):
 	curs.close()
 	conn.commit()
 
-def add_question(conn, question_id, interview, text):
+def add_question(conn, question_id, interview, text, sequence_number):
     '''Add a new question with the given text to the given interview.'''
 
     curs = conn.cursor()
-    curs.execute('INSERT INTO Questions VALUES (?, ?, ?)',
-                 (question_id, interview, text))
+    curs.execute('INSERT INTO Questions VALUES (?, ?, ?, ?)',
+                 (question_id, interview, text, sequence_number))
     curs.close()
     conn.commit()
 
