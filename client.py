@@ -123,7 +123,7 @@ def lawyerMenu(ssl_socket):
 
 # =========================================================================
 #             LAWYER: INTERVIEW CREATION   
-# Status: Incomplete (skeleton finished)
+# Status: Complete
 # 
 # Precondition: 
 # - Lawyer/Staff access
@@ -132,10 +132,6 @@ def lawyerMenu(ssl_socket):
 # Postcondition:
 # - interview recorded in database
 #
-# TO DO
-# - PROTOCOL: add database interactions
-# - ENCRYPTION: add redirect to main menu
-# - SYNC: test/refine loop control
 # =========================================================================
 
 def create_interview(ssl_socket, cred):
@@ -324,7 +320,7 @@ def review_submissions():
 
 # ===========================================================================
 #             LAWYER: MANAGE INTERVIEWS
-# Status: Incomplete (skeleton finished)
+# Status: Near Complete
 # 
 # Precondition(s):
 # - Lawyer/Staff account session
@@ -334,53 +330,52 @@ def review_submissions():
 #   return to main menu
 #
 # TO DO
-# - PROTOCOL: add database interactions
-# - ENCRYPTION: add redirect to main menu
-# - test/refine loop control
+# - debug
 # =============================================================================
 def manage_interviews(ssl_socket, cred):
     
     ## MANAGE_INTERVIEWS LOOP ##
     while(True):
         
-        ## options display ##
+        ## INTRO AND OPTIONS ##
     
-        # incoming option messages
-        option_msg = ssl_socket.recv(1024).decode()
-        option_e = ssl_socket.recv(1024).decode()
-        option_d = ssl_socket.recv(1024).decode()
-        option_q = ssl_socket.recv(1024).decode()
+        # incoming manage_interviews intro message
+        mi_msg = ssl_socket.recv(1024).decode()
+        if(len(mi_msg) != 0):
+            print(mi_msg) 
         
-        if(option_msg != 0 and
-           option_e   != 0 and
-           option_d   != 0 and 
-           option_q   != 0    ):
-            print(option_msg)
-            print(option_e)
-            print(option_d)
-            print(option_q)
+        # incoming option messages
+        msgs = ''
+        while(msgs != 'end'):
+            msgs = str(ssl_socket.recv(1024).decode())
+            if(len(msgs) != 0):
+                print(msgs)
          
         ## LOOP CONTROL ##
-            
         # outgoing option response
         option_resp = str(input(' > '))
         ssl_socket.send(option_resp.encode() )
         
         # E: edit/view created interviews
-        if option_resp == 'E':
+        if option_resp.upper() == 'E':
             
+            ## INTERVIEW SUMMARY ##
             # incoming edit/view intro message
             edit_msg = ssl_socket.recv(1024).decode()
             if(len(edit_msg) != 0):
                 print(edit_msg)
                 
             # incoming lawyer-created interviews list
-            interview= ''
-            while (interview != 'end'):
-                interview = ssl_socket.recv(1024).decode()
-                print(interview)
+            interview_list = ''
+            while (interview_list != 'end'):
+                interview_list = ssl_socket.recv(1024).decode()
+                if(len(interview_list) != 0):
+                    print(interview_list)
+                if(interview_list == 'No Interviews available!'):
+                    return
             
-            # incoming interview selection message
+            ## INTERVIEW SELECTION ##
+            # incoming interview selection prompt
             select_msg = ssl_socket.recv(1024).decode()
             if(len(select_msg) != 0):
                 print(select_msg)
@@ -389,19 +384,108 @@ def manage_interviews(ssl_socket, cred):
             select_entry = str(input(' > '))
             ssl_socket.send( select_entry.encode() )
             
-            # <PROTOCOL: 
-            #    - retrieve interview based on criteria
-            #    - ask for name change; if yes, make database changes
-            #    - generate loop for each question
-            #    - ask for question edit; if yes, make database changes>
+            ## EDITING OPTIONS ##
+            while(True):
+                
+                # incoming editing options
+                msgs = ''
+                while(msgs != 'end'):
+                    msgs = str(ssl_socket.recv(1024).decode())
+                    if(len(msgs) != 0):
+                        print(msgs)
             
-            # incoming confirmation message
-            confirm_msg = ssl_socket.recv(1024).decode()
-            if(len(confirm_msg) != 0):
-                print(confirm_msg)
+                # outgoing edit option choice (N, Q, or R)
+                edit_choice = str(input(' > '))
+                ssl_socket.send(option_resp.encode() )
+            
+                # N: edit name
+                if edit_choice.upper() == 'N':
+                    
+                    # incoming name change prompt
+                    name_req = ssl_socket.recv(1024).decode()
+                    if(len(name_req) != 0):
+                        print(name_req)
+                    
+                    # outgoing name change input    
+                    new_name = str(input(' > '))
+                    ssl_socket.send(new_name.encode() )
+                    
+                    # incoming name change confirmation message
+                    name_conf = ssl_socket.recv(1024).decode()
+                    if(len(name_conf) != 0):
+                        print(name_conf)
+                
+                # Q: edit question
+                elif edit_choice.upper() == 'Q':
+                    
+                    while(True):
+                        
+                        ## INTERVIEW QUESTIONS DISPLAY ##
+                        question_list = ''
+                        while (question_list != 'end'):
+                            question_list = ssl_socket.recv(1024).decode()
+                            if(len(question_list) != 0):
+                                print(question_list)
+                            
+                        ## QUESTION EDITING ##
+                        # incoming question selection request
+                        q_select = ssl_socket.recv(1024).decode()
+                        if(len(q_select) != 0):
+                            print(q_select)
+                        
+                        # outgoing question selection choice 
+                        q_choice = str(input(' > '))
+                        ssl_socket.send(q_choice.encode() )
+                    
+                        # incoming current question text display
+                        q_current = ssl_socket.recv(1024).decode()
+                        if(len(q_current) != 0):
+                            print(q_current)
+                        
+                        # incoming question change request
+                        q_req = ssl_socket.recv(1024).decode()
+                        if(len(q_req) != 0):
+                            print(q_req)
+                        
+                        # outgoing question change input
+                        q_change = str(input(' > '))
+                        ssl_socket.send(q_change.encode() )
+                        
+                        ## QUESTION CHANGE CONFIRMATION ##
+                        q_conf = ssl_socket.recv(1024).decode()
+                        if(len(q_conf) != 0):
+                            print(q_conf)
+                            
+                        ## LOOP CONTROL ##
+                        # incoming prompt to add more questions (Y/N)
+                        q_continue = ssl_socket.recv(1024).decode()
+                        if(len(q_continue) != 0):
+                            print(q_continue)
+                            
+                        # Y:
+                        if q_continue.upper() == 'Y':
+                            continue
+                        # N:
+                        elif q_continue.upper() == 'N':
+                            break
+                        # invalid response
+                        else:
+                            invalid_resp = ssl_socket.recv(1024).decode()
+                            if(len(invalid_resp) != 0):
+                                print(invalid_resp)
+                    
+                    
+                # R: return to Created Interview Options
+                elif edit_choice.upper() == 'R':
+                    break
+                # invalid response
+                else:
+                    invalid_resp = ssl_socket.recv(1024).decode()
+                    if(len(invalid_resp) != 0):
+                        print(invalid_resp)  
         
         # D: remove created interview
-        elif option_resp == 'D':
+        elif option_resp.upper() == 'D':
             
             ## verification loop ##
             while(True):
@@ -411,8 +495,14 @@ def manage_interviews(ssl_socket, cred):
                 if(len(delete_msg) != 0):
                     print(delete_msg)
                     
-                # <PROTOCOL: generate interview list from database >
-                # display <none> if none exist
+                # incoming lawyer-created interviews list
+                interview_list = ''
+                while (interview_list != 'end'):
+                    interview_list = ssl_socket.recv(1024).decode()
+                    if(len(interview_list) != 0):
+                        print(interview_list)
+                    if(interview_list == 'No Interviews available!'):
+                        return
                 
                 # incoming interview selection message
                 select_msg = ssl_socket.recv(1024).decode()
@@ -435,7 +525,7 @@ def manage_interviews(ssl_socket, cred):
                 ssl_socket.send(verify_entry.encode() )
                 
                 # Y: confirm selection
-                if verify_entry == 'Y':
+                if verify_entry.upper() == 'Y':
                     
                     # incoming confirmation message
                     confirm_msg = ssl_socket.recv(1024).decode()
@@ -444,19 +534,18 @@ def manage_interviews(ssl_socket, cred):
                     break
                 
                 # N: redo selection
-                elif verify_entry == 'N':
+                elif verify_entry.upper() == 'N':
                     continue
                 
                 # invalid response
                 else:
-                    
                     invalid_resp = ssl_socket.recv(1024).decode()
                     if(len(invalid_resp) != 0):
                         print(invalid_resp)    
                 
         
         # Q: return to Lawyer Options
-        elif option_resp == 'Q':
+        elif option_resp.upper() == 'Q':
             break
         
         # invalid response
@@ -470,8 +559,6 @@ def manage_interviews(ssl_socket, cred):
         lawyerMenu(ssl_socket)   
     elif cred == 3:
         adminMenu(ssl_socket)
-    # remove pass when code is complete    
-    pass
 
 # ===========================================================================
 #             INTERVIEWEE: TAKE INTERVIEW   
