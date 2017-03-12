@@ -1,3 +1,4 @@
+# CO
 import sqlite3
 
 
@@ -81,19 +82,21 @@ def retrieve_interview_title(conn, interview_id):
     conn.commit()
     return title
 
-def retrieve_interview_all(conn):
-	curs = conn.cursor()
-	interviews = curs.execute('SELECT interview_id, interview_name FROM Interviews') 
-	#curs.close()
-	conn.commit()
-	return interviews
 
-def assign_interview(conn, interview_id, interview_user ):
-	curs = conn.cursor()
-	interviews = curs.execute('UPDATE Interviews set interview_user = ? where interview_id = ?',
-		(interview_user, interview_id)) 
-	curs.close()
-	conn.commit()
+def retrieve_interview_all(conn):
+    curs = conn.cursor()
+    interviews = curs.execute('SELECT interview_id, interview_name FROM Interviews') 
+    conn.commit()
+    return interviews
+
+
+def assign_interview(conn, interview_id, interview_user):
+    curs = conn.cursor()
+    curs.execute('UPDATE Interviews set interview_user = ? where interview_id = ?',
+                 (interview_user, interview_id))
+    curs.close()
+    conn.commit()
+
 
 def add_question(conn, question_id, interview, text, sequence_number):
     '''Add a new question with the given text to the given interview.'''
@@ -103,6 +106,7 @@ def add_question(conn, question_id, interview, text, sequence_number):
                  (question_id, interview, text, sequence_number))
     curs.close()
     conn.commit()
+
 
 def delete_question(conn, question_id):
     '''Delete the question with the given ID.'''
@@ -125,12 +129,16 @@ def retrieve_question(conn, question_id):
     conn.commit()
     return text
 
+
 def retrieve_questions(conn, interview_id):
     '''Retrieve questions for a given interview ID'''
-    
+
     curs = conn.cursor()
-    questions = curs.execute('SELECT question_text, question_sequence FROM Questions WHERE question_interview = ? ORDER BY question_sequence ASC',
-                 (interview_id))
+    questions = curs.execute('''SELECT question_text, question_sequence
+                                  FROM Questions
+                                  WHERE question_interview = ?
+                                  ORDER BY question_sequence ASC''',
+                             (interview_id))
     conn.commit()
     return questions
 
@@ -167,12 +175,4 @@ def retrieve_answer(conn, user_id, question_id):
     conn.commit()
     return ans
 
-
-if __name__ == '__main__':
-    try:
-        conn = sqlite3.connect('test.db')
-        add_user(conn, 'cobrien', None, 0)
-        conn.close()
-    finally:
-        import os
-        os.remove('test.db')
+# CO
