@@ -10,6 +10,7 @@ import socket
 import sqlite3
 import db
 import random
+import bcrypt
 
 class ServerThread(threading.Thread):    
     def __init__(self, client_socket, connection_id):
@@ -530,6 +531,7 @@ class ServerThread(threading.Thread):
             option = self.client_socket.recv(1024).decode()
             if (option == '1'):
                 check_user = self.client_socket.recv(1024).decode()
+                print("check user" + check_user)
                 user_id = ''
                 user_conf= ''
                 try:
@@ -585,6 +587,12 @@ class ServerThread(threading.Thread):
         print('Exiting User Management')
         return
 
+    def checkpassword(self, password, hashedpw):
+
+        if bcrypt.checkpw(password.encode('utf-8'), hashedpw.encode('utf-8')):
+            return True
+        else:
+            return False
 
     
     def run(self):
@@ -610,12 +618,23 @@ class ServerThread(threading.Thread):
             print("Account created successfully")
         self._USER_NAME = str(self.client_socket.recv(1024).decode())
         self._USER_PW   = str(self.client_socket.recv(1024).decode())
+        cur.execute("SELECT * FROM Users WHERE user_name== ? ", (self._USER_NAME,))
+        conn.commit()
+        hashed_password = cur.fetchone()[3]
+        print("THIS IS THE HASHED PW:")
+        print (hashed_password)
+        if (self.checkpassword(self._USER_PW, hashed_password)):
+            _LOGIN_STATUS = True
+        else:
+            _LOGIN_STATUS = False
 
         ##Authentication stuff
         ##
         ##
         ##
         #Searches database for username and password
+
+
 
         User_Row = conn.execute("SELECT user_name FROM Users WHERE user_name = ?", (self._USER_NAME,)).fetchone()
         conn.close()
