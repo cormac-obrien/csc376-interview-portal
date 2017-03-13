@@ -1,6 +1,7 @@
+-- CO
 BEGIN TRANSACTION;
 
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
   user_id       INTEGER     UNIQUE NOT NULL,
   user_name     TEXT        UNIQUE NOT NULL,
   user_password TEXT        NOT NULL,
@@ -10,7 +11,7 @@ CREATE TABLE Users (
   CONSTRAINT fk_user_perms FOREIGN KEY (user_perms) REFERENCES UserPermissions (perms_id)
 );
 
-CREATE TABLE UserPermissions
+CREATE TABLE IF NOT EXISTS UserPermissions
 (
   perms_id     INTEGER     UNIQUE NOT NULL,
   perms_alias  TEXT UNIQUE NOT NULL,
@@ -22,14 +23,14 @@ CREATE TABLE UserPermissions
   CONSTRAINT pk_perms_id PRIMARY KEY (perms_id)
 );
 
-INSERT INTO UserPermissions (perms_id, perms_alias, perms_create, perms_delete, perms_edit, perms_answer, perms_review)
+INSERT OR IGNORE INTO UserPermissions (perms_id, perms_alias, perms_create, perms_delete, perms_edit, perms_answer, perms_review)
 VALUES
-  (0, 'sysadmin',    1,  1,  1,  1,  1),
-  (1, 'attorney',    1,  1,  1,  0, 1),
-  (2, 'staff',       0, 0, 1,  0, 1),
-  (3, 'interviewee', 0, 0, 0, 1,  0);
+  (0, 'sysadmin',    1, 1, 1, 1, 1),
+  (1, 'attorney',    1, 1, 1, 0, 1),
+  (2, 'staff',       0, 0, 1, 0, 1),
+  (3, 'interviewee', 0, 0, 0, 1, 0);
 
-CREATE TABLE Interviews
+CREATE TABLE IF NOT EXISTS Interviews
 (
   interview_id INTEGER UNIQUE NOT NULL,
   interview_name TEXT NOT NULL,
@@ -39,7 +40,7 @@ CREATE TABLE Interviews
   CONSTRAINT fk_interview_user FOREIGN KEY (interview_user) REFERENCES Users (user_id)
 );
 
-CREATE TABLE Questions
+CREATE TABLE IF NOT EXISTS Questions
 (
   question_id INTEGER UNIQUE NOT NULL,
   question_interview INTEGER NOT NULL,
@@ -49,7 +50,7 @@ CREATE TABLE Questions
   CONSTRAINT fk_question_interview FOREIGN KEY (question_interview) REFERENCES Interviews (interview_id)
 );
 
-CREATE TABLE Answers
+CREATE TABLE IF NOT EXISTS Answers
 (
   answer_id       INTEGER UNIQUE NOT NULL,
   answer_user     INTEGER NOT NULL,
@@ -60,6 +61,7 @@ CREATE TABLE Answers
   CONSTRAINT fk_answer_user FOREIGN KEY (answer_user) REFERENCES Users (user_id),
   CONSTRAINT fk_answer_question FOREIGN KEY (answer_question) REFERENCES Questions (question_id)
 );
+-- CO
 
 --DG
 CREATE TABLE IF NOT EXISTS Login
