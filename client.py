@@ -28,11 +28,12 @@ def adminMenu(ssl_socket):
     print('(1) create interview')
     print('(2) review interview')
     print('(3) assign interview')
+    print('(4) manage users')
     print('(q) Log out and exit')
 
     while(True):
         response = str(input(' > '))
-        if(response != '1' and response != '2' and response != '3' and response.upper() != 'Q'):
+        if(response != '1' and response != '2' and response != '3' and response != '4' and response.upper() != 'Q'):
             print('Error: Please enter a valid response corresponding to desired action.')
         else:
             break
@@ -52,6 +53,9 @@ def adminMenu(ssl_socket):
             break
         elif response == '3':
             assign_interview(ssl_socket, cred)
+            break
+        elif response == '4':
+            manage_users(ssl_socket)
             break
         elif response.upper() == 'Q':
             break
@@ -610,7 +614,86 @@ def take_interview(ssl_socket):
     
     # remove pass when code is complete
     pass
+# ===========================================================================
+#             ADMIN: MANAGE USERS   
+# Status: complete (may neeed further testing)
+# 
+# Precondition(s):
+# - Users exist
+#
+# Postcondition: 
+# - 
+#
+# TO DO
+# -
+# - 
+# =============================================================================
 
+def manage_users(ssl_socket):
+    print (ssl_socket.recv(1024).decode()) #Wlecome to User Management
+    while(True):
+        
+        print( 'What would you like to do?')
+        print('(1) Change a user\'s authorization')
+        print('(2) Delete a user')
+        print('(q) Exit to menu')
+        option = str(input('>'))
+        ssl_socket.send((option).encode())
+
+        #Update a user's authorization level
+        if (option == '1'):
+
+            print('Please the user ')
+            check_user = str(input('>'))
+            ssl_socket.send((check_user).encode())
+            user_conf = ssl_socket.recv(1024).decode()
+            print(user_conf)
+            if (user_conf != check_user): #user does not exist
+                #print(user_conf)
+                break
+            else:
+
+                print('Please input new authorization level')
+                print('(0) Admin')
+                print('(1) Attorney')
+                print('(2) Staff')
+                print('(3) User')
+                new_auth = str(input('>'))
+
+                if (new_auth != '0' and new_auth != '1' and new_auth != '2' and new_auth != '3'):
+                    print('Invalid authorization level.')
+                    ssl_socket.send(('Invalid Authorization Level').encode())
+                    break
+                    
+                else:
+                    ssl_socket.send((new_auth).encode())
+                    print (ssl_socket.recv(1024).decode())
+                    break
+
+        #Delete a selected user
+        elif (option == '2'):
+            print('Enter name of user to delete')
+            check_user = str(input('>'))
+            ssl_socket.send((check_user).encode())
+            user_conf = ssl_socket.recv(1024).decode()
+            print(user_conf)
+            if (user_conf != check_user):
+                
+                break
+            else:
+                print('Are you sure you wish to delete '+ check_user+ '? (Y/N')
+                second_conf = str(input('>'))
+                ssl_socket.send((second_conf).encode())
+                print( ssl_socket.recv(1024).decode() ) #response
+                break
+
+        else:
+            print('Exiting User Managment')
+            break
+
+
+            # interviewscoming lawyer-created interviews list
+    adminMenu(ssl_socket)
 
 
 def validate(loggedInAs):

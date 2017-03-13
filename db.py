@@ -21,6 +21,12 @@ def delete_user(conn, user_id):
     curs.close()
     conn.commit()
 
+def update_user_auth(conn, user_id, user_perms ):
+    curs = conn.cursor()
+    interviews = curs.execute('UPDATE Users set user_perms = ? where user_id = ?',
+        (user_perms, user_id)) 
+    curs.close()
+    conn.commit()
 
 def retrieve_user_name(conn, user_id):
     '''Retrieve the username of the user with the given ID.'''

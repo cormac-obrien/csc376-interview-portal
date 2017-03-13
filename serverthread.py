@@ -506,6 +506,86 @@ class ServerThread(threading.Thread):
         
         # remove pass when code is done
         pass
+
+
+    # ===========================================================================
+    #             ADMIN: MANAGE USERS   
+    # Status: complete (may neeed further testing)
+    # 
+    # Precondition(s):
+    # - Users exist
+    #
+    # Postcondition: 
+    # - 
+    #
+    # TO DO
+    # -
+    # - 
+    # =============================================================================
+
+    def manage_users(self):
+        self.client_socket.send( ('Welcome to User Management').encode() )
+        conn = sqlite3.connect('interview.db')
+        while(True):
+            option = self.client_socket.recv(1024).decode()
+            if (option == '1'):
+                check_user = self.client_socket.recv(1024).decode()
+                user_id = ''
+                user_conf= ''
+                try:
+                    user_id = db.retrieve_user_by_name(conn, check_user)
+                    user_conf = check_user
+                    self.client_socket.send( (user_conf).encode() )
+                except TypeError:
+                    user_conf = 'User does not exist'
+                    self.client_socket.send( (user_conf).encode() )
+                    break
+                    
+
+                #self.client_socket.send( (user_conf).encode() )
+
+                new_auth = self.client_socket.recv(1024).decode()
+                if (new_auth == 'Invalid Authorization Level'):
+                    print(new_auth)
+                    break
+                print('Assigning new Authorization Level')
+                db.update_user_auth(conn, user_id, new_auth)
+                conf = ('User ' + check_user + ' has been reassigned an Authorization level')
+                self.client_socket.send( (conf).encode() )
+                break
+
+            elif (option == '2'):
+                check_user = self.client_socket.recv(1024).decode()
+                user_id = ''
+                user_conf= ''
+                try:
+                    user_id = str(db.retrieve_user_by_name(conn, check_user))
+                    user_conf = check_user
+                    self.client_socket.send( (user_conf).encode() )
+                except TypeError:
+                    user_conf = 'User does not exist'
+                    self.client_socket.send( (user_conf).encode() )
+                    break
+
+
+
+                second_conf = self.client_socket.recv(1024).decode()
+                response = ''
+                if (second_conf.upper() == 'Y'):
+                    db.delete_user(conn, user_id)
+                    response = ('user ' + check_user + ' has been deleted')
+                else:
+                    response = ('Operation has been cancelled')
+                
+                self.client_socket.send( (response).encode() )
+                break
+
+            else:
+                break
+        print('Exiting User Management')
+        return
+
+
     
     def run(self):
     #greet and request username and password
@@ -549,36 +629,38 @@ class ServerThread(threading.Thread):
         _LOGIN_STATUS = (User_Row != None)
 
         if _LOGIN_STATUS == True:
-            cred = '2'
+            cred = '3'
             # CHANGE cred TO USER CREDENTIAL IDENTIFIER BELOW
             self.client_socket.send( (cred).encode() )
         
-        while(True):
-            response = str(self.client_socket.recv(1024).decode())
-            print(response)
-            if(cred == '1'):    #INTERVIEWEE
-                if response == '1':
-                    self.take_interview()
-                elif response.upper() == 'Q':
-                    break
-            elif(cred == '2'):    #LAWYER
-                if response == '1':
-                    self.create_interview()
-                elif response == '2':
-                    self.review_submissions()
-                elif response == '3':
-                    self.assign_interview()
-                elif response.upper() == 'Q':
-                    return
-            elif(cred == '3'):      #ADMIN
-                if response == '1':
-                    self.create_interview()
-                elif response == '2':
-                    self.review_submissions()
-                elif response == '3':
-                    self.assign_interview()
-                elif response.upper() == 'Q':
-                    return
+            while(True):
+                response = str(self.client_socket.recv(1024).decode())
+                print(response)
+                if(cred == '1'):    #INTERVIEWEE
+                    if response == '1':
+                            self.take_interview()
+                    elif response.upper() == 'Q':
+                        break
+                elif(cred == '2'):    #LAWYER
+                    if response == '1':
+                        self.create_interview()
+                    elif response == '2':
+                        self.review_submissions()
+                    elif response == '3':
+                        self.assign_interview()
+                    elif response.upper() == 'Q':
+                        return
+                elif(cred == '3'):      #ADMIN
+                    if response == '1':
+                        self.create_interview()
+                    elif response == '2':
+                        self.review_submissions()
+                    elif response == '3':
+                        self.assign_interview()
+                    elif response == '4':
+                        self.manage_users()
+                    elif response.upper() == 'Q':
+                        return
         else:
             self.client_socket.send( ("Invalid Username").encode() )
 
