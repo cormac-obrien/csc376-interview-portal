@@ -68,6 +68,7 @@ Add additional notes about how to deploy this on a live system
 ## Contributing
 
 Lenard Alipio, Mac O'brien, Kevin WesterLund, Patrick Drucker, Anna Safavi, George Sekalias, Taylor Williams, Derick Garcia 
+See the [LICENSE](CONTRIBUTERS.md) file for details
 
 ## License
 
