@@ -71,5 +71,5 @@ Lenard Alipio, Mac O'brien, Kevin WesterLund, Patrick Drucker, Anna Safavi, Geor
 
 ## License
 
-This project is licensed under the DePaul University License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the DePaul University License - see the [LICENSE](CCAW-license-1.0.txt) file for details
 
