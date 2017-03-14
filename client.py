@@ -12,6 +12,8 @@ _PORT = 8001
 #DG
 
 import os
+from OpenSSL import crypto, SSL
+from os.path import exists, join
 
 def terminate_session():
     print('Terminating connection to server')
@@ -700,13 +702,40 @@ def validate(loggedInAs):
     # KH -- EXCISED PER LICENSING RESTRICTION
     pass
     
-# CURRENT CERTIFICATE'S HOSTNAME IS 'localhost'
-# won't work if not using 'localhost' unless you create a new certificate with new host address as the certificate's commonName
+def generate_server_self_cert():
+	CERT_FILE = "InterviewPortal.crt"
+	KEY_FILE = "InterviewPortal.key"
+	cert_dir = os.getcwd()
+
+	# if a certificate already exists, a new one will be generated
+	if(not exists(join(cert_dir, CERT_FILE)) or not os.path.exists(join(cert_dir, KEY_FILE))):
+	    key = crypto.PKey()
+	    key.generate_key(crypto.TYPE_RSA, 1024)
+	    cert = crypto.X509()
+	    cert.get_subject().C = "US"
+	    cert.get_subject().ST = "Illinois"
+	    cert.get_subject().L = "Chicago"
+	    cert.get_subject().O = "CSC 376"
+	    cert.get_subject().OU = "Interview Portal"
+	    cert.get_subject().CN = _HOST
+	    cert.set_serial_number(1000)
+	    cert.gmtime_adj_notBefore(0)
+	    cert.gmtime_adj_notAfter(10*365*24*60*60)
+	    cert.set_issuer(cert.get_subject())
+	    cert.set_pubkey(key)
+	    cert.sign(key, 'sha1')
+
+	    open(join(cert_dir, CERT_FILE), "wb").write(
+	        crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+	    open(join(cert_dir, KEY_FILE), "wb").write(
+	        crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
+	return
+
+# CERTIFICATE'S HOSTNAME WILL BE 'localhost'
 def ssl_connection(client_socket):
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    context.load_verify_locations('cert.pem')
+    generate_server_self_cert()
     # wrap client_socket, uses RSA encryption, certificate required
-    ssl_socket = ssl.wrap_socket(client_socket, ciphers='RSA:!COMPLEMENTOFALL', ca_certs='cert.pem', cert_reqs=ssl.CERT_REQUIRED)
+    ssl_socket = ssl.wrap_socket(client_socket, ciphers='RSA:!COMPLEMENTOFALL', ca_certs='InterviewPortal.crt', cert_reqs=ssl.CERT_REQUIRED)
     # make connection
     ssl_socket.connect((_HOST, _PORT))
     # verify certificate and do handshake
@@ -714,10 +743,6 @@ def ssl_connection(client_socket):
     ssl.match_hostname(cert, _HOST)
     ssl_socket.do_handshake()
     return ssl_socket
-
-# use:
-# openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout cert.pem
-# on the cmd line to generate new certificate (update ssl.match_hostname() parameter)
 
 if __name__ == '__main__':
     import sys

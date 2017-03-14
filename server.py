@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     while True:
         client_socket, client_addr = server_socket.accept()
-        ssl_socket = ssl.wrap_socket(client_socket, server_side=True, certfile="cert.pem", keyfile="cert.pem")
+        ssl_socket = ssl.wrap_socket(client_socket, server_side=True, certfile="InterviewPortal.crt", keyfile="InterviewPortal.key")
         print("Client", client_addr, "connecting - ID:", connection_id)
         ServerThread(ssl_socket, connection_id).start()
         connection_id += 1
