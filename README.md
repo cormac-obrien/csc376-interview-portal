@@ -1,4 +1,4 @@
-# csc376-interview-portal
+
 
 # Interview Portal
 
@@ -20,19 +20,19 @@ Give examples
 
 A step by step series of examples that tell you have to get a development env running
 
-Say what the step will be
+Install Hashlib
 
 ```
-Give the example
+Go to https://pypi.python.org/pypi/hashlib/20081119
 ```
 
-And repeat
+Install PassLib 
 
 ```
-until finished
+Go to https://pypi.python.org/pypi/passlib
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+
 
 ## Running the tests
 
@@ -60,9 +60,8 @@ Add additional notes about how to deploy this on a live system
 
 ## Built With
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+* Python
+
 
 ## Contributing
 
