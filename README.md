@@ -10,16 +10,6 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-What things you need to install the software and how to install them
-
-```
-Give examples
-```
-
-### Installing
-
-A step by step series of examples that tell you have to get a development env running
-
 Install Hashlib
 
 ```
@@ -31,6 +21,18 @@ Install PassLib
 ```
 Go to https://pypi.python.org/pypi/passlib
 ```
+
+
+### Installing
+
+A step by step series of examples that tell you have to get a development env running
+
+
+
+```
+Example
+```
+
 
 
 
