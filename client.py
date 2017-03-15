@@ -51,7 +51,7 @@ def adminMenu(ssl_socket):
             create_interview(ssl_socket, cred)
             break
         elif response == '2':
-            review_interview(ssl_socket, cred)
+            review_submissions(ssl_socket, cred)
             break
         elif response == '3':
             assign_interview(ssl_socket, cred)
@@ -116,7 +116,7 @@ def lawyerMenu(ssl_socket):
             create_interview(ssl_socket, cred)
             break
         elif response == '2':
-            reviewInterview(ssl_socket, cred)
+            review_submission(ssl_socket, cred)
             break
         elif response == '3':
             assign_interview(ssl_socket, cred)
@@ -126,7 +126,34 @@ def lawyerMenu(ssl_socket):
         else:
             sys.stdout.flush()
             return
+def staffMenu(ssl_socket):
+    print('What would you like to do?')
+    #print('(1) create interview')
+    print('(1) review interview')
+    #print('(3) assign interview')
+    print('(q) Log out and exit')
 
+    while(True):
+        response = str(input(' > '))
+        if(response != '1' and response.upper() != 'Q'):
+            print('Error: Please enter a valid response corresponding to desired action.')
+        else:
+            break
+    ssl_socket.send((response).encode())
+
+    #confirmation = ssl_socket.recv(1024).decode()
+    print(confirmation)
+    while True:
+        # lawyer credential identifier = 2
+        cred = 2
+        if response == '1':
+            review_submissions(ssl_socket, cred)
+            break
+        elif response.upper() == 'Q':
+            break
+        else:
+            sys.stdout.flush()
+            return
 # =========================================================================
 #             LAWYER: INTERVIEW CREATION   
 # Status: Complete
@@ -273,14 +300,14 @@ def assign_interview(ssl_socket, cred):
 
     #Confirms that the interviewee exists
 
-    ssl_socket.send(( user ).encode()) 									#User_Search
+    ssl_socket.send(( user ).encode())                                  #User_Search
     user_conf = ssl_socket.recv(1024).decode()
 
     #if no existing user
     while user_conf != 'User exists':
         print(user_conf)
         user = str(input(' > '))
-        ssl_socket.send(( user ).encode())								#User_Search
+        ssl_socket.send(( user ).encode())                              #User_Search
         if user == 'quit':
             return
         user_conf = ssl_socket.recv(1024).decode()
@@ -296,20 +323,20 @@ def assign_interview(ssl_socket, cred):
 
     #Confirms that the interview exists
 
-    ssl_socket.send(( interview ).encode())								#Interview_Search
-    interview_conf = ssl_socket.recv(1024).decode()			
+    ssl_socket.send(( interview ).encode())                             #Interview_Search
+    interview_conf = ssl_socket.recv(1024).decode()         
     #if no existing user
     while interview_conf == 'Interview does not exist, try again.':
         print(interview_conf)
         interview = str(input(' > '))
-        ssl_socket.send(( interview ).encode())							#Interview_Search
+        ssl_socket.send(( interview ).encode())                         #Interview_Search
         if interview == 'quit':
             return
         interview_conf = ssl_socket.recv(1024).decode()
 
-    print(interview_conf)	# Assigning Interview
+    print(interview_conf)   # Assigning Interview
     interview_conf = ssl_socket.recv(1024).decode() #
-    print(interview_conf)	# INTERVIEW has been assigned to USER
+    print(interview_conf)   # INTERVIEW has been assigned to USER
 
     '''if cred == 2:
         lawyerMenu(ssl_socket)   
@@ -321,8 +348,76 @@ def assign_interview(ssl_socket, cred):
     elif cred == 3:
         adminMenu(ssl_socket)
     
-def review_submissions():
-    pass
+def review_submissions(ssl_socket, cred):
+
+   # Get name of Interviewee
+    intro = ssl_socket.recv(1024).decode()
+    print(intro)
+    print('Enter the name of the interviewee to review:')
+    user = str(input(' > '))
+
+    #Confirms that the interviewee exists
+
+    ssl_socket.send(( user ).encode())                                  #User_Search
+    user_conf = ssl_socket.recv(1024).decode()
+
+    #if no existing user
+    while user_conf != 'User exists':
+        print(user_conf)
+        user = str(input(' > '))
+        ssl_socket.send(( user ).encode())                              #User_Search
+        if user == 'quit':
+            return
+        user_conf = ssl_socket.recv(1024).decode()
+
+    print(user_conf)
+    interview= ''
+
+    while (interview != 'end'):
+        interview = ssl_socket.recv(1024).decode()
+        print(interview)
+    #interviews = list(ssl_socket.recv(1024).decode())
+    #for interview in interviews:
+    #    print('(' + interview[0] + ') '+ interview[1] )
+
+
+    # Get name of Interview
+    print('Enter the ID of the interview to review:')
+    interview = str(input(' > '))
+
+    #Confirms that the interview exists
+
+    ssl_socket.send(( interview ).encode())
+    print('just sent input')                             #Interview_Search
+    interview_conf = ssl_socket.recv(1024).decode()
+    #print(interview_conf)         
+    #if no existing user
+    while interview_conf == 'Interview does not exist, try again.':
+        print(interview_conf)
+        interview = str(input(' > '))
+        ssl_socket.send(( interview ).encode())                         #Interview_Search
+        if interview == 'quit':
+            return
+        interview_conf = ssl_socket.recv(1024).decode()
+
+    print(interview_conf) 
+    review = ''
+    while (review != 'End of Interview'):
+        review = (ssl_socket.recv(1024).decode())
+        print(review)
+    #print(interview_conf)   # Assigning Interview
+    #interview_conf = ssl_socket.recv(1024).decode() #
+    #print(interview_conf)   # INTERVIEW has been assigned to USER
+
+    '''if cred == 2:
+        lawyerMenu(ssl_socket)   
+    elif cred == 3:
+        adminMenu(ssl_socket)
+    '''
+    if cred == 2:
+        lawyerMenu(ssl_socket)   
+    elif cred == 3:
+        adminMenu(ssl_socket)
 
 # ===========================================================================
 #             LAWYER: MANAGE INTERVIEWS
@@ -582,40 +677,49 @@ def manage_interviews(ssl_socket, cred):
 # - SYNC: test/refine loop control
 # =============================================================================
 def take_interview(ssl_socket):
-    
-    # incoming intro message
+
+   # incoming intro message
     intro_msg = ssl_socket.recv(1024).decode()
     if(len(intro_msg) != 0):
         print(intro_msg)
-        
-    # assigned interview list
-    # <PROTOCOL: generate interviewee's interview list from database?>
+
+   # assigned interview list
     # display <none> if none exist
-    
-    # incoming interview selection request
+    # incoming lawyer-created interviews list
+
+    interview= ''
+    while (interview != 'end'):
+            interview = ssl_socket.recv(1024).decode()
+            print(interview)
+
+   # incoming interview selection request
     select_msg = ssl_socket.recv(1024).decode()
     if(len(select_msg) != 0):
         print(select_msg)
-    
-    # outgoing interview selection entry
+
+   # outgoing interview selection entry
     select_entry = input(str(' > '))
     ssl_socket.send(select_entry.encode() )
-    
-    # <PROTOCOL: 
-    #    - retrieve interview based on criteria
+
+   #    - retrieve interview based on criteria
     #    - generate loop for each question
-    #    - for each question, ask for answer, link it to question
-    #    - add interview to review list>
-    
-    # incoming confirmation message
+    question= ''
+    while (question != 'end'):
+            question = ssl_socket.recv(1024).decode()
+            print(question)
+            #- for each question, ask for answer, link it to question
+            if (question != 'end'):
+                answer = input(str(' > '))
+                ssl_socket.send(answer.encode())
+
+   #    - add interview to review list>
+
+   # incoming confirmation message
     confirm_msg = ssl_socket.recv(1024).decode()
     if(len(confirm_msg) != 0):
         print(confirm_msg)
-        
-    # END take_interview: return to Interviewee Options
-    
-    # remove pass when code is complete
-    pass
+
+   # END take_interview: return to Interviewee Options
 # ===========================================================================
 #             ADMIN: MANAGE USERS   
 # Status: complete (may neeed further testing)
@@ -697,7 +801,7 @@ def manage_users(ssl_socket):
             # interviewscoming lawyer-created interviews list
     adminMenu(ssl_socket)
 
-
+    
 def validate(loggedInAs):
     # KH -- EXCISED PER LICENSING RESTRICTION
     pass
@@ -750,15 +854,6 @@ if __name__ == '__main__':
     import ssl
     import ClientLogin
 
-    # argc = len(sys.argv)
-    #
-    # if (argc != 3):
-    #     _HOST = str(input('Enter HOST name: '))
-    #     _PORT = int(input('Enter PORT number: '))
-    # else:
-    #     _HOST = str(sys.argv[1])
-    #     _PORT = int(sys.argv[2])
-
     ssl_socket = ssl_connection(socket.socket(socket.AF_INET, socket.SOCK_STREAM))
 
     # Server greets client
@@ -793,7 +888,7 @@ if __name__ == '__main__':
     ssl_socket.send((USER_PW).encode())
 
     confirmation = str(ssl_socket.recv(1024).decode())  # confirms credentials
-    print(confirmation)  # print credentials
+    print('conf = ' + str(confirmation))  # print credentials
     try:
         cred = int(confirmation)
 
@@ -801,14 +896,17 @@ if __name__ == '__main__':
         terminate_session()
         sys.exit()
 
-    if cred == 1:
-        print('interviewee')
+    if cred == 3:
+        print('Interviewee')
         intervieweeMenu(ssl_socket)
-    elif cred == 2:
-        print('lawyer')
+    if cred == 2:
+        print('Staff')
+        staffMenu(ssl_socket)
+    elif cred == 1:
+        print('Lawyer')
         lawyerMenu(ssl_socket)
-    elif cred == 3:
-        print('admin')
+    elif cred == 0:
+        print('Admin')
         adminMenu(ssl_socket)
 
     terminate_session()
