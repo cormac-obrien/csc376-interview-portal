@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS Users (
   CONSTRAINT pk_user_id PRIMARY KEY (user_id),
   CONSTRAINT fk_user_perms FOREIGN KEY (user_perms) REFERENCES UserPermissions (perms_id)
 );
+INSERT OR IGNORE INTO Users (user_id, user_name, user_password, user_perms)
+  VALUES
+  (0,'sysadmin', 'admin', 0 );
 
 CREATE TABLE IF NOT EXISTS UserPermissions
 (
@@ -55,11 +58,14 @@ CREATE TABLE IF NOT EXISTS Answers
   answer_id       INTEGER UNIQUE NOT NULL,
   answer_user     INTEGER NOT NULL,
   answer_question INTEGER NOT NULL,
-  answer_text     TEXT NOT NULL,
+  answer_text     TEXT,
+  answer_interview INTEGER NOT NULL,
 
   CONSTRAINT pk_answer_id PRIMARY KEY (answer_id),
   CONSTRAINT fk_answer_user FOREIGN KEY (answer_user) REFERENCES Users (user_id),
-  CONSTRAINT fk_answer_question FOREIGN KEY (answer_question) REFERENCES Questions (question_id)
+  CONSTRAINT fk_answer_question FOREIGN KEY (answer_question) REFERENCES Questions (question_id),
+  CONSTRAINT fk_answer_interview FOREIGN KEY (answer_interview) REFERENCES Interview (interview_id)
+  
 );
 -- CO
 
@@ -68,10 +74,10 @@ CREATE TABLE IF NOT EXISTS Login
 (
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-  	authkey TEXT NOT NULL,
+    authkey TEXT NOT NULL,
 
-  	CONSTRAINT pk_username PRIMARY KEY (username),
-  	CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES Users(user_name)
+    CONSTRAINT pk_username PRIMARY KEY (username),
+    CONSTRAINT fk_username FOREIGN KEY (username) REFERENCES Users(user_name)
 );
 --DG
 COMMIT TRANSACTION;
