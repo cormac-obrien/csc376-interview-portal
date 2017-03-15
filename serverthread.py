@@ -299,7 +299,7 @@ class ServerThread(threading.Thread):
         questions = db.retrieve_questions(conn, interview_id)
 
         for question in questions:
-            questionStr = str(question[1])
+            questionStr = str(question[4:])
             print('ind 1 = '+ questionStr)
             print('ind 0 = '+ str(question[0]))
             answer = str( db.retrieve_answer(conn, interview_user, str(question[0]) ))
@@ -595,20 +595,22 @@ class ServerThread(threading.Thread):
             questions = db.retrieve_questions(conn, interview_id)
             #    - generate loop for each question
             for question in questions:
-                self.client_socket.send( ('(' + str(question[0]) + ') ' + question[1]).encode() )
+                self.client_socket.send( ('(' + str(question[0]) + ') ' + question[4:]).encode() )
 
                #    - for each question, ask for answer, link it to question
                 answer = str(self.client_socket.recv(1024).decode())
 
                 answer_id = int(db.retrieve_answer_id_by_question(conn, user_id, question[0]))
                 db.update_answer(conn, answer, answer_id)
+            self.client_socket.send( ('end').encode() )
 
 
 
            #    - add interview to review list>
 
             self.client_socket.send( ('Interview complete').encode() )
-
+            conn.close()
+            
            # END take_interview: go back to Interviewee Options
 
 

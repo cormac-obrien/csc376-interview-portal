@@ -724,14 +724,16 @@ def take_interview(ssl_socket):
 
    #    - retrieve interview based on criteria
     #    - generate loop for each question
-    question= ''
-    while (question != 'end'):
+
+    while (True):
             question = ssl_socket.recv(1024).decode()
             print(question)
             #- for each question, ask for answer, link it to question
             if (question != 'end'):
                 answer = input(str(' > '))
                 ssl_socket.send(answer.encode())
+            elif (question == 'end'):
+                break
 
    #    - add interview to review list>
 
@@ -739,7 +741,7 @@ def take_interview(ssl_socket):
     confirm_msg = ssl_socket.recv(1024).decode()
     if(len(confirm_msg) != 0):
         print(confirm_msg)
-
+    intervieweeMenu(ssl_socket)
    # END take_interview: return to Interviewee Options
 # ===========================================================================
 #             ADMIN: MANAGE USERS   
