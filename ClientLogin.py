@@ -7,7 +7,7 @@
 
 #Client Login
 import socket
-#from loginauth import LoginAuthentication
+from loginauth import LoginAuthentication
  
 def Main():
 	host = 'localhost'
@@ -75,11 +75,11 @@ def user_register(ssl_socket):
 	Print('Register')
 	user = input('Enter your username')
 	psw = input ('Enter your password')
-	authkey = 'Something'
+	authkey = '1'
 	
 	# Register function needs to check the name as well 
 	# Where does authkey come from?
-	if register(user,pswd, authkey)==False:
+	if register(user, pswd, authkey)==False:
 		print('Username and password are taken')
 		print('Choose another username and password')
 		user_login(ssl_socket)

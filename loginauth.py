@@ -1,3 +1,4 @@
+
 import sys
 import hashlib
 import getpass
@@ -48,7 +49,7 @@ class LoginAuthentication:
         def main(argv):
 
             if input('The file ' + sys.argv[
-                1] + ' will be erased or overwrite if exsting.\nDo you wish to continue (Y/n): ') not in ('Y', 'y'):
+                1] + ' will be erased or overwritten if exsting.\nDo you wish to continue (Y/n): ') not in ('Y', 'y'):
                 sys.exit('\nChanges were not recorded\n')
 
             user_name = input('Please Enter a User Name: ')
@@ -87,7 +88,6 @@ class LoginAuthentication:
             c.execute("INSERT INTO Login(username, password, authkey) VALUES(?,?,?)", (username, password, authkey))
             self.conn.commit()
             created = True
-
         except sqlite3.Warning:
             print('unsucessful')
         except Exception as e:

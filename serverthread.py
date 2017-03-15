@@ -11,6 +11,9 @@ import sqlite3
 import db
 import random
 import bcrypt
+import getpass
+import ClientLogin
+from loginauth import LoginAuthentication
 
 class ServerThread(threading.Thread):    
     def __init__(self, client_socket, connection_id):
@@ -328,7 +331,7 @@ class ServerThread(threading.Thread):
             self.client_socket.send( ('What would you like to do? (choose one)').encode() )
             self.client_socket.send( ('E: Edit/View an interview').encode() )
             self.client_socket.send( ('D: Delete an interview').encode() )
-            self.client_socket.send( ('Q: Back to Lawyer Options').encode() )
+            self.client_socket.send( ('Q: Back to Options').encode() )
             # outgoing signal to terminate client display loop
             self.client_socket.send( ('end').encode() )
             
@@ -346,25 +349,21 @@ class ServerThread(threading.Thread):
                 interviews = db.retrieve_interview_all(conn)
                 
                 # no interviews exist
-                if (len(interview) == 0):
+                if (len(interviews) == 0):
                     self.client_socket.send( ('No Interviews available!').encode() )
                     # outgoing signal to terminate client display loop
-                    self.client_socket.send( ('end').encode() )
                     conn.close()
-                    return
                 # one or more interviews exist 
-                for interview in interviews:
-                    id_disp = str(interview[0])
-                    name_disp = str(interview[1])
-                    self.client_socket.send( ('(' + id_disp + ') ' + name_disp).encode() )
+                else:
+                    self.client_socket.send((str(interviews)).encode())
                 # outgoing signal to terminate client display loop
-                self.client_socket.send( ('end').encode() )
+
                 
                 ## INTERVIEW SELECTION ##
                 # outgoing selection request
                 self.client_socket.send( ('Enter the interview ID of the created interview you wish to edit').encode() )
                 # incoming selection input
-                interview_id = int(self.client_socket.recv(1024).decode())
+                interview_id = self.client_socket.recv(1024).decode()
                 
                 ## EDITING OPTIONS ##
                 while(True):
@@ -381,20 +380,30 @@ class ServerThread(threading.Thread):
                     edit_option = self.client_socket.recv(1024).decode()
                     
                     ## OPTIONS ##
-                    # N: edit name
+                    # N: edit name 
                     if edit_option.upper() == 'N':
+                        changing_name = True
+                        while changing_name:
+                            try:
+                                # outgoing name change request
+                                self.client_socket.send( ('Enter a new name').encode() )
+                                # incoming name change input
+                                new_name = str(self.client_socket.recv(1024).decode()) 
+                                curs = conn.cursor()
+                                curs.execute("UPDATE Interviews SET interview_name = ? WHERE interview_id =?",(new_name, interview_id) )
+                                conn.commit()
+                                self.client_socket.send(("Success").encode())
+                                # outgoing name change confirmation
+                                name_conf = db.retrieve_interview_title(conn, interview_id)
+                                self.client_socket.send( ('Interview name has been successfully changed to: ' + name_conf).encode() )
+                                changing_name = False
+
+                            except:
+                                error = "Error"
+                                self.client_socket.send(error.encode())
+                                self.client_socket.send(("Error occured. Please try again."))
+
                         
-                        # outgoing name change request
-                        self.client_socket.send( ('Enter a new name').encode() )
-                        # incoming name change input
-                        new_name = str(self.client_socket.recv(1024).decode()) 
-                        curs = conn.cursor()
-                        curs.execute("UPDATE Interviews SET interview_name = ? WHERE interview_id =?",(new_name, interview_id) )
-                        conn.commit()
-                        
-                        # outgoing name change confirmation
-                        name_conf = retrieve_interview_title(conn, interview_id)
-                        self.client_socket.send( ('Interview name has been successfully changed to: ' + name_conf).encode() )
             
                     # Q: edit question
                     elif edit_option.upper() == 'Q':
@@ -402,28 +411,27 @@ class ServerThread(threading.Thread):
                         while(True):
                         
                             ## INTERVIEW QUESTIONS DISPLAY ##
-                            questions = retrieve_questions(conn, interview_id)
-                            for question in questions:
-                                # display example: 1) question text
-                                question_num = str(question[1])
-                                question_txt = str(question[0])
-                                self.client_socket.send( (question_num + ') ' + question_txt).encode() )
+                            questions = db.retrieve_questions(conn, interview_id)
+                            # display example: 1) question text
+                            self.client_socket.send( str(questions).encode() )
                             # outgoing signal to terminate client display loop
-                            self.client_socket.send( ('end').encode() )
-                           
                             ## QUESTION EDITING ## 
                             # outgoing question selection request
-                            self.client_socket.send( ('Enter the number of the question you would like to edit').encode() )
+                            self.client_socket.send( ('Enter the ID of the question you would like to edit').encode() )
                             # incoming sequence number input
-                            q_choice = int(self.client_socket.recv(1024).decode())
                             
                             # retrieve question and display current text 
-                            curs = conn.cursor()
-                            q_edit = curs.execute('SELECT question_text WHERE question_interview = ? AND question_sequence = ?', 
-                                                  (interview_id, q_choice))
-                            conn.commit()
-                            self.client_socket.send( ('Current question text: ' + str(q_edit[0])).encode() )
-                            
+                            find_q = True
+                            while find_q:
+                                try:
+                                    q_choice = int(self.client_socket.recv(1024).decode())
+                                    q_text = db.retrieve_question(conn, q_choice)
+                                    self.client_socket.send(("Found").encode())
+                                    self.client_socket.send( (('Current question text: ' + str(q_text)).encode()))
+                                    find_q = False
+                                except:
+                                    self.client_socket.send(("Error").encode())
+                                    self.client_socket.send(("Invalid Question ID Number. Please try again.").encode())
                             # outgoing question change request
                             self.client_socket.send( ('Enter question change').encode() )
                             # incoming question change input
@@ -431,16 +439,16 @@ class ServerThread(threading.Thread):
                             
                             # update question
                             curs = conn.cursor()
-                            curs.execute('UPDATE Questions SET question_text = ? WHERE question_interview = ? AND question_sequence = ?',
+                            curs.execute('UPDATE Questions SET question_text = ? WHERE question_interview = ? AND question_id = ?',
                                          (q_change, interview_id, q_choice))
                             conn.commit()
                             
                             ## CONFIRMATION ##
                             # outgoing question change confirmation
-                            q_conf = curs.execute('SELECT question_text FROM Questions Where question_interview = ? AND question_sequence = ?',
-                                                  (interview_id, q_choice))
+                            q_conf = curs.execute('SELECT question_text FROM Questions Where question_interview = ? AND question_id = ?',
+                                                  (interview_id, q_choice)).fetchone()
                             conn.commit()
-                            self.client_socket.send( ('Interview question has been successfully changed to: ' + q_conf).encode() )
+                            self.client_socket.send( ('Interview question has been successfully changed to: ' + str(q_conf)).encode() )
                             
                             ## LOOP CONTROL ##
                             self.client_socket.send( ('Would you like to edit another question? Y/N').encode() )
@@ -472,41 +480,40 @@ class ServerThread(threading.Thread):
                     
                     ## INTERVIEW SUMMARY ##
                     self.client_socket.send( ('Created Interviews:').encode() )
+                 
+                
+                    # no interviews exist
                     interviews = db.retrieve_interview_all(conn)
                 
                     # no interviews exist
-                    if (len(interview) == 0):
+                    if (len(interviews) == 0):
                         self.client_socket.send( ('No Interviews available!').encode() )
                         # outgoing signal to terminate client display loop
-                        self.client_socket.send( ('end').encode() )
                         conn.close()
-                        return
                     # one or more interviews exist 
-                    for interview in interviews:
-                        id_disp = str(interview[0])
-                        name_disp = str(interview[1])
-                        self.client_socket.send( ('(' + id_disp + ') ' + name_disp).encode() )
-                    # outgoing signal to terminate client display loop
-                    self.client_socket.send( ('end').encode() )
+                    else:
+                        self.client_socket.send((str(interviews)).encode())    # outgoing signal to terminate client display loop
                 
                     ## INTERVIEW SELECTION ##
                     
                     # outgoing interview selection request
+                    #valid_id = True
+                    #while valid_id:
                     self.client_socket.send( ('Enter the ID of the interview you wish to delete').encode() )
                     interview_id = int(self.client_socket.recv(1024).decode())
                     
                     ## VERIFICATION LOOP CONTROL ##
-                    name_conf = retrieve_interview_title(conn, interview_id)
+                    name_conf = db.retrieve_interview_title(conn, interview_id)
                     # outgoing verify request
-                    self.client_socket.send('Remove ' + name_conf + ' from database? Y/N')
+                    self.client_socket.send(('Remove ' + str(name_conf) + ' from database? Y/N').encode())
                     # incoming verify input
-                    verify = str(self.client_socket.recv(1024))
+                    verify = str(self.client_socket.recv(1024).decode())
                     
                     # Y: remove interview from database (terminate loop)
                     if verify.upper() == 'Y':
                         
                         ## DELETE AND CONFIRM ##
-                        delete_interview(conn, interview_id)
+                        db.delete_interview(conn, interview_id)
                         self.client_socket.send( (name_conf + ' removed.').encode() )
                         break
                     
@@ -619,6 +626,8 @@ class ServerThread(threading.Thread):
         while(True):
             option = self.client_socket.recv(1024).decode()
             if (option == '1'):
+                users = str(db.retrieve_user_all(conn))
+                self.client_socket.send((users).encode())
                 check_user = self.client_socket.recv(1024).decode()
                 print("check user" + check_user)
                 user_id = ''
@@ -646,6 +655,8 @@ class ServerThread(threading.Thread):
                 break
 
             elif (option == '2'):
+                users = str(db.retrieve_user_all(conn))
+                self.client_socket.send((users).encode())
                 check_user = self.client_socket.recv(1024).decode()
                 user_id = ''
                 user_conf= ''
@@ -686,6 +697,7 @@ class ServerThread(threading.Thread):
     
     def run(self):
     #greet and request username and password
+
         self.client_socket.send( ('Welcome to the Interview Portal').encode() )
 
         sqlFile = 'schema.sql'
@@ -696,64 +708,75 @@ class ServerThread(threading.Thread):
 
         #Creating a new user
         response = str(self.client_socket.recv(1024).decode()) # User chooses to login or create a new account
+        if (response == '1'):
+            checking_pass = True
+            while (checking_pass):
+                try:
+                    self._USER_NAME = str(self.client_socket.recv(1024).decode())
+                    self._USER_PW   = str(self.client_socket.recv(1024).decode())
+                    cur.execute("SELECT * FROM Users WHERE user_name== ? ", (self._USER_NAME,))
+                    conn.commit()
+                    hashed_password = cur.fetchone()[2]
+                    if (self.checkpassword(self._USER_PW, hashed_password)):
+                        self.client_socket.send(("Logging In").encode())
+                        self.client_socket.send(("Redirecting...").encode())
+                        checking_pass = False
+                    else:
+                        self.client_socket.send(("Failed in else").encode())
+                        self.client_socket.send(("Username or password did not match. Try again:").encode())
+        
+                except:
+                    self.client_socket.send(("Failed").encode())
+                    self.client_socket.send(("Username or password did not match. Try again:").encode())
+        
         if (response == '2'):
-            self._USER_NAME = str(self.client_socket.recv(1024).decode())
-            self._USER_AUTH = int(self.client_socket.recv(1024).decode())
-            self._USER_PW = str(self.client_socket.recv(1024).decode())
-            print(self._USER_NAME, self._USER_AUTH, self._USER_PW)
-            cur.execute("INSERT INTO Users ( user_name, user_password, user_perms) VALUES ( ?, ?, ?);",
-                        (self._USER_NAME,  self._USER_PW, self._USER_AUTH))
-            conn.commit()
-            print("Account created successfully")
-        self._USER_NAME = str(self.client_socket.recv(1024).decode())
-        self._USER_PW   = str(self.client_socket.recv(1024).decode())
-        user_row = cur.execute("SELECT * FROM Users WHERE user_name== ? ", (self._USER_NAME,))
-        conn.commit()
-        hashed_password = cur.fetchone()[2]
-        print("THIS IS THE HASHED PW:")
-        print (hashed_password)
-        if (self.checkpassword(self._USER_PW, hashed_password)):
-            _LOGIN_STATUS = True
-        else:
-            _LOGIN_STATUS = False
 
+            exists = True
+            while exists:
+                try:
+                    self._USER_NAME = str(self.client_socket.recv(1024).decode())
+                    #self._USER_AUTH = int(self.client_socket.recv(1024).decode())
+                    self._USER_PW = str(self.client_socket.recv(1024).decode())
+                    cur.execute("INSERT INTO Users ( user_name, user_password, user_perms) VALUES ( ?, ?, ?);",
+                                (self._USER_NAME, self._USER_PW, 3))
+                    conn.commit()
+                    self.client_socket.send(("Succesful").encode())
+                    self.client_socket.send(("Account created successfully").encode())
+                    exists = False
+                    pass
+                except:
+                    error = "Integrity Error"
+                    self.client_socket.send((error).encode())
+                    self.client_socket.send(("Username already exists. Please choose a different one.").encode())
+        
+       
 
         user_id = db.retrieve_user_by_name(conn,self._USER_NAME)
 
+
+        User_Row = conn.execute("SELECT user_name FROM Users WHERE user_name = ?", (self._USER_NAME,)).fetchone()
+        user_id = db.retrieve_user_by_name(conn, self._USER_NAME)
         cred = str(db.retrieve_user_auth(conn, user_id))
-        #print("cred = " + str(cred))
+        conn.close()
+     
+        ##
+        ##
+        ##
+        ##
+        ##
+
+        _LOGIN_STATUS = (User_Row != None)
+
+
         if _LOGIN_STATUS == True:
-            #print(cred)
-            #conn= sqlite3.connect( 'interview.db' )
-            #cur = conn.cursor()
-            #cred = cur.fetchone()[2]
-            print("cred = " + str(cred))
             # CHANGE cred TO USER CREDENTIAL IDENTIFIER BELOW
-            self.client_socket.send( (cred).encode() )
+            self.client_socket.send((cred).encode())
         
             while(True):
                 response = str(self.client_socket.recv(1024).decode())
                 print(response)
-                if(cred == '3'):    #INTERVIEWEE
-                    if response == '1':
-                            self.take_interview()
-                    elif response.upper() == 'Q':
-                        break
-                elif(cred == '2'):    #Staff
-                    if response == '1':
-                            self.review_interview()
-                    elif response.upper() == 'Q':
-                        break       
-                elif(cred == '1'):    #LAWYER
-                    if response == '1':
-                        self.create_interview()
-                    elif response == '2':
-                        self.review_submissions()
-                    elif response == '3':
-                        self.assign_interview()
-                    elif response.upper() == 'Q':
-                        return
-                elif(cred == '0'):      #ADMIN
+
+                if(cred == '0'):      #ADMIN
                     if response == '1':
                         self.create_interview()
                     elif response == '2':
@@ -762,8 +785,27 @@ class ServerThread(threading.Thread):
                         self.assign_interview()
                     elif response == '4':
                         self.manage_users()
+                    elif response == '5':
+                        self.manage_interviews()
+                    elif response.upper() == 'Q':
+
+                        break
+                elif(cred == '1'):    #LAWYER
+                    if response == '1':
+                        self.create_interview()
+                    elif response == '2':
+                        self.review_submissions()
+                    elif response == '3':
+                        self.assign_interview()
+                    elif response == '4':
+                        self.manage_interviews()
                     elif response.upper() == 'Q':
                         return
+                elif(cred == '3'):    #INTERVIEWEE
+                    if response == '1':
+                            self.take_interview()
+                    elif response.upper() == 'Q':
+                        break
         else:
             self.client_socket.send( ("Invalid Username").encode() )
 
