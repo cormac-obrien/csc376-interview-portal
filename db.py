@@ -81,6 +81,7 @@ def retrieve_user_all(conn):
     conn.commit()
     return list_users
 
+
 def retrieve_user_auth(conn, user_id):
     '''Retrieve the user ID of the user with the given name.'''
 
@@ -128,19 +129,7 @@ def retrieve_interview_title(conn, interview_id):
     conn.commit()
     return title
 
-'''
-def retrieve_interview_all(conn):
-    curs = conn.cursor()
-    list_interview = []
-    interviews = curs.execute('SELECT interview_id, interview_name FROM Interviews') 
-    for interview in interviews:
-        interview_name = str(interview[1])
-        interview_id = str(interview[0])
-        list_interview.append(("Name of Interview: " + interview_name, "ID: " + interview_id))
-    conn.commit()
-<<<<<<< HEAD
-    return interviews
-'''
+
 def retrieve_interview_all(conn):
     '''Retrieve all the Interview ID's and Names'''
     list_interview = []
@@ -151,8 +140,6 @@ def retrieve_interview_all(conn):
         interview_id = str(interview[0])
         list_interview.append((interview_name, interview_id))
     conn.commit()
-=======
->>>>>>> Worked on Manage Users, Manage Interviews, and edited some db.py functions. Also error handled for log in.
     return list_interview
 
 def retrieve_interview_by_user(conn,interview_user):
@@ -222,7 +209,6 @@ def retrieve_questions(conn, interview_id):
     '''Retrieve all the users ID's and Names'''
     list_questions = []
     curs = conn.cursor()
-    
     questions = curs.execute('''SELECT question_text, question_sequence, question_id
                                   FROM Questions
                                   WHERE question_interview = ? 

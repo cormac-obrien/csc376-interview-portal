@@ -751,6 +751,26 @@ class ServerThread(threading.Thread):
         
        
 
+            exists = True
+            while exists:
+                try:
+                    self._USER_NAME = str(self.client_socket.recv(1024).decode())
+                    #self._USER_AUTH = int(self.client_socket.recv(1024).decode())
+                    self._USER_PW = str(self.client_socket.recv(1024).decode())
+                    cur.execute("INSERT INTO Users ( user_name, user_password, user_perms) VALUES ( ?, ?, ?);",
+                                (self._USER_NAME, self._USER_PW, 3))
+                    conn.commit()
+                    self.client_socket.send(("Succesful").encode())
+                    self.client_socket.send(("Account created successfully").encode())
+                    exists = False
+                    pass
+                except:
+                    error = "Integrity Error"
+                    self.client_socket.send((error).encode())
+                    self.client_socket.send(("Username already exists. Please choose a different one.").encode())
+        
+       
+
         user_id = db.retrieve_user_by_name(conn,self._USER_NAME)
 
 
@@ -775,7 +795,6 @@ class ServerThread(threading.Thread):
             while(True):
                 response = str(self.client_socket.recv(1024).decode())
                 print(response)
-
                 if(cred == '0'):      #ADMIN
                     if response == '1':
                         self.create_interview()
@@ -788,7 +807,6 @@ class ServerThread(threading.Thread):
                     elif response == '5':
                         self.manage_interviews()
                     elif response.upper() == 'Q':
-
                         break
                 elif(cred == '1'):    #LAWYER
                     if response == '1':
