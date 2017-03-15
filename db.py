@@ -205,6 +205,8 @@ def retrieve_question(conn, question_id):
    # conn.commit()
    # return questions
 
+# created by LA
+# optimized by TW
 def retrieve_questions(conn, interview_id):
     '''Retrieve all the users ID's and Names'''
     list_questions = []

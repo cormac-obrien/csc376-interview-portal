@@ -65,10 +65,10 @@ Add additional notes about how to deploy this on a live system
 * Python
 
 
-## Contributers
+## Contributors
 
 Lenard Alipio, Mac O'brien, Kevin WesterLund, Patrick Drucker, Anna Safavi, George Sekalias, Taylor Williams, Derick Garcia 
-See the [Conributers](CONTRIBUTERS.md) file for details
+See the [Contributors](CONTRIBUTORS.md) file for details
 
 ## License
 

@@ -34,6 +34,10 @@ class ServerThread(threading.Thread):
     # =========================================================================
     #             LAWYER: INTERVIEW CREATION   
     #
+    # Author(s):
+    # - Architecture: LA 
+    # - Testing/Optimization: PD
+    # 
     # Status: Complete
     # 
     # Precondition: 
@@ -307,8 +311,13 @@ class ServerThread(threading.Thread):
     
     # ===========================================================================
     #             LAWYER: MANAGE INTERVIEWS
-    # Status: Near Complete
     # 
+    # Author(s):
+    # - Architecture: LA
+    # - Testing/Optimization: TW
+    #
+    # Status: Complete
+    #
     # Precondition(s):
     # - Lawyer/Staff account session
     #
@@ -316,8 +325,6 @@ class ServerThread(threading.Thread):
     # - interview edited in database, interview deleted from database, or
     #   return to main menu
     #
-    # TO DO
-    # - debug
     # =============================================================================
     def manage_interviews(self):
         

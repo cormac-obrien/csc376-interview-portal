@@ -1,9 +1,9 @@
-# Contributers
+# Contributors
 
 ## Lenard Alipio
 
 ```
-Interview
+Set up architecture for create_interview and manage_interviews
 ```
 
 ## Mac O'brien
