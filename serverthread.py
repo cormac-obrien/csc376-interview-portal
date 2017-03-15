@@ -712,6 +712,11 @@ class ServerThread(threading.Thread):
         conn= sqlite3.connect( 'interview.db' )
         cur = conn.cursor()
         cur.executescript(qry)
+        new_USER_PW = LoginAuthentication.get_hashed_password("admin")
+        cur.execute("INSERT OR IGNORE INTO Users ( user_name, user_password, user_perms) VALUES ( ?, ?, ?);",
+                                ("sysadmin", new_USER_PW, 0))
+                    
+        conn.commit()
 
         #Creating a new user
         response = str(self.client_socket.recv(1024).decode()) # User chooses to login or create a new account
@@ -754,37 +759,14 @@ class ServerThread(threading.Thread):
                 except:
                     error = "Integrity Error"
                     self.client_socket.send((error).encode())
-                    self.client_socket.send(("Username already exists. Please choose a different one.").encode())
-        
+                    self.client_socket.send(("Username already exists. Please choose a different one.").encode())        
        
-
-            exists = True
-            while exists:
-                try:
-                    self._USER_NAME = str(self.client_socket.recv(1024).decode())
-                    #self._USER_AUTH = int(self.client_socket.recv(1024).decode())
-                    self._USER_PW = str(self.client_socket.recv(1024).decode())
-                    cur.execute("INSERT INTO Users ( user_name, user_password, user_perms) VALUES ( ?, ?, ?);",
-                                (self._USER_NAME, self._USER_PW, 3))
-                    conn.commit()
-                    self.client_socket.send(("Succesful").encode())
-                    self.client_socket.send(("Account created successfully").encode())
-                    exists = False
-                    pass
-                except:
-                    error = "Integrity Error"
-                    self.client_socket.send((error).encode())
-                    self.client_socket.send(("Username already exists. Please choose a different one.").encode())
-        
-       
-
-        user_id = db.retrieve_user_by_name(conn,self._USER_NAME)
 
 
         User_Row = conn.execute("SELECT user_name FROM Users WHERE user_name = ?", (self._USER_NAME,)).fetchone()
         user_id = db.retrieve_user_by_name(conn, self._USER_NAME)
         cred = str(db.retrieve_user_auth(conn, user_id))
-        conn.close()
+        conn.commit()
      
         ##
         ##
