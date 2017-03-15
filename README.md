@@ -22,6 +22,12 @@ Install PassLib
 Go to https://pypi.python.org/pypi/passlib
 ```
 
+Install pyOpenSSL 
+
+```
+Go to https://pypi.python.org/pypi/pyOpenSSL/16.2.0
+```
+
 
 ### Installing
 
